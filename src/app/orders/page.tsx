@@ -1,15 +1,13 @@
 import Link from "next/link";
 
-import { getOrders } from "@/lib/inventory-service";
+import { getOrders, getProducts } from "@/lib/inventory-service";
 
-function toStatusLabel(status: string) {
-  return status.toLowerCase().replaceAll("_", " ");
-}
+import { OrderManagement } from "./order-management";
 
 export const dynamic = "force-dynamic";
 
 export default async function OrdersPage() {
-  const orders = await getOrders();
+  const [orders, products] = await Promise.all([getOrders(), getProducts()]);
 
   return (
     <main className="container stack-lg">
@@ -24,46 +22,7 @@ export default async function OrdersPage() {
         </Link>
       </section>
 
-      <section className="card">
-        <div className="table-wrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Order</th>
-                <th>Customer</th>
-                <th>Status</th>
-                <th>Items</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => {
-                const totalItems = order.items.reduce(
-                  (sum, item) => sum + item.quantity,
-                  0,
-                );
-                const totalValue = order.totalPrice;
-
-                return (
-                  <tr key={order.id}>
-                    <td>{order.orderNumber}</td>
-                    <td>{order.customerName}</td>
-                    <td>
-                      <span className={`pill ${order.status.toLowerCase()}`}>
-                        {toStatusLabel(order.status)}
-                      </span>
-                    </td>
-                    <td>
-                      {totalItems} (${totalValue.toFixed(2)})
-                    </td>
-                    <td>{new Date(order.createdAt).toLocaleString()}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <OrderManagement initialOrders={orders} products={products} />
     </main>
   );
 }
