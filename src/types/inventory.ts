@@ -1,6 +1,6 @@
 export type ObjectId = string;
 
-export type UserRole = "ADMIN" | "MANAGER";
+export type UserRole = "ADMIN" | "MANAGER" | "USER";
 
 export type ProductStatus = "ACTIVE" | "OUT_OF_STOCK";
 

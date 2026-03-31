@@ -39,35 +39,37 @@ export default function LoginPage() {
   return (
     <main className="auth-shell">
       <section className="auth-panel">
-        <p className="eyebrow">Authentication</p>
-        <h1>Sign in to Smart Inventory</h1>
+        <p className="eyebrow">Welcome Back</p>
+        <h1>Sign in to Your Account</h1>
         <p className="auth-subtitle">
-          Use your email and password to access the operations dashboard.
+          Access your inventory and order management dashboard
         </p>
 
         <label className="field">
-          Email
+          <span>Email Address</span>
           <input
             className="input"
             type="email"
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="manager@smartinventory.dev"
+            placeholder="you@company.com"
           />
         </label>
 
         <label className="field">
-          Password
+          <span>Password</span>
           <input
             className="input"
             type="password"
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Enter your password"
+            placeholder="••••••••"
           />
         </label>
+
+        {message ? <p className="server-message">{message}</p> : null}
 
         <div className="auth-actions">
           <button
@@ -78,17 +80,15 @@ export default function LoginPage() {
               isPending || email.trim().length < 3 || password.length < 4
             }
           >
-            {isPending ? "Signing in..." : "Sign in"}
+            {isPending ? "Signing in..." : "Sign In"}
           </button>
           <button className="btn" type="button" onClick={handleDemoLogin}>
-            Demo Login
+            Try Demo
           </button>
         </div>
 
-        {message ? <p className="server-message">{message}</p> : null}
-
         <p className="auth-footnote">
-          New here? <Link href="/auth/signup">Create your account</Link>
+          Don't have an account? <Link href="/auth/signup">Create one now</Link>
         </p>
       </section>
     </main>

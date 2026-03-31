@@ -34,37 +34,36 @@ export default function SignupPage() {
   return (
     <main className="auth-shell">
       <section className="auth-panel">
-        <p className="eyebrow">Authentication</p>
-        <h1>Create your account</h1>
+        <p className="eyebrow">Get Started</p>
+        <h1>Create Your Account</h1>
         <p className="auth-subtitle">
-          Signup is frontend-only for now and ready to connect to your Node.js
-          backend later.
+          Join your inventory management system and start organizing
         </p>
 
         <label className="field">
-          Full Name
+          <span>Full Name</span>
           <input
             className="input"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Alex Morgan"
+            placeholder="John Doe"
           />
         </label>
 
         <label className="field">
-          Email
+          <span>Email Address</span>
           <input
             className="input"
             type="email"
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="alex@company.com"
+            placeholder="john@company.com"
           />
         </label>
 
         <label className="field">
-          Password
+          <span>Password</span>
           <input
             className="input"
             type="password"
@@ -76,16 +75,18 @@ export default function SignupPage() {
         </label>
 
         <label className="field">
-          Role
+          <span>Role</span>
           <select
             className="input"
             value={role}
             onChange={(event) => setRole(event.target.value as UserRole)}
           >
             <option value="MANAGER">Manager</option>
-            <option value="ADMIN">Admin</option>
+            <option value="ADMIN">Administrator</option>
           </select>
         </label>
+
+        {message ? <p className="server-message">{message}</p> : null}
 
         <div className="auth-actions">
           <button
@@ -98,6 +99,18 @@ export default function SignupPage() {
               email.trim().length < 3 ||
               password.length < 8
             }
+          >
+            {isPending ? "Creating account..." : "Create Account"}
+          </button>
+        </div>
+
+        <p className="auth-footnote">
+          Already have an account? <Link href="/auth/login">Sign in</Link>
+        </p>
+      </section>
+    </main>
+  );
+}
           >
             {isPending ? "Creating..." : "Create account"}
           </button>
