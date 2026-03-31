@@ -1,0 +1,16 @@
+import Link from "next/link";
+
+export default function NotFound() {
+  return (
+    <main className="container">
+      <section className="card error-card">
+        <p className="eyebrow">404</p>
+        <h1>Page not found</h1>
+        <p>The page you requested does not exist.</p>
+        <Link className="btn primary" href="/dashboard">
+          Go to dashboard
+        </Link>
+      </section>
+    </main>
+  );
+}
