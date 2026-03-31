@@ -227,6 +227,11 @@ export async function getProducts(): Promise<Product[]> {
   }));
 }
 
+export async function getCategories(): Promise<Category[]> {
+  await pause(120);
+  return categories;
+}
+
 export async function getProductListItems(): Promise<ProductListItem[]> {
   const catalog = await getProducts();
   return catalog.map((product) => {

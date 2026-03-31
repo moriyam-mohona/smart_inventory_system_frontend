@@ -39,7 +39,9 @@ export default function RootLayout({
 
             <nav className="row nav-links">
               <Link href="/dashboard">Dashboard</Link>
+              <Link href="/categories">Categories</Link>
               <Link href="/products">Products</Link>
+              <Link href="/products/new">Add Product</Link>
               <Link href="/orders">Orders</Link>
               <Link href="/auth/login">Login</Link>
               <Link href="/auth/signup">Signup</Link>

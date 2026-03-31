@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { getProductListItems, getStockStatus } from "@/lib/inventory-service";
 
 export const revalidate = 120;
@@ -11,6 +13,14 @@ export default async function ProductsPage() {
         <p className="eyebrow">Inventory</p>
         <h1>Products and stock overview</h1>
         <p>Rendered with ISR and refreshed every 2 minutes.</p>
+        <div className="row">
+          <Link className="btn primary" href="/products/new">
+            Add Product
+          </Link>
+          <Link className="btn" href="/categories">
+            Manage Categories
+          </Link>
+        </div>
       </section>
 
       <section className="card">
