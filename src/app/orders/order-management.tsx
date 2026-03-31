@@ -43,8 +43,26 @@ function makeOrderNumber(currentCount: number) {
   return `ORD-${y}${m}${day}-${serial}`;
 }
 
+function nextProductStatus(stockQuantity: number): Product["status"] {
+  return stockQuantity <= 0 ? "OUT_OF_STOCK" : "ACTIVE";
+}
+
+function stockWarning(available: number) {
+  return `Only ${available} items available in stock`;
+}
+
 export function OrderManagement({ initialOrders, products }: OrderManagementProps) {
+  const [inventoryProducts, setInventoryProducts] = useState<Product[]>(products);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [reservedOrderIds, setReservedOrderIds] = useState<Record<string, boolean>>(
+    () => {
+      const seed: Record<string, boolean> = {};
+      for (const order of initialOrders) {
+        seed[order.id] = order.status !== "PENDING";
+      }
+      return seed;
+    },
+  );
   const [statusFilter, setStatusFilter] = useState<"ALL" | OrderStatus>("ALL");
   const [dateFilter, setDateFilter] = useState("");
   const [message, setMessage] = useState("");
@@ -70,13 +88,13 @@ export function OrderManagement({ initialOrders, products }: OrderManagementProp
 
   const draftTotal = useMemo(() => {
     return draft.items.reduce((sum, item) => {
-      const product = products.find((entry) => entry.id === item.productId);
+      const product = inventoryProducts.find((entry) => entry.id === item.productId);
       if (!product) {
         return sum;
       }
       return sum + product.price * item.quantity;
     }, 0);
-  }, [draft.items, products]);
+  }, [draft.items, inventoryProducts]);
 
   function addDraftItem() {
     if (!draft.selectedProductId) {
@@ -88,12 +106,23 @@ export function OrderManagement({ initialOrders, products }: OrderManagementProp
       return;
     }
 
-    const selectedProduct = products.find(
+    const selectedProduct = inventoryProducts.find(
       (product) => product.id === draft.selectedProductId,
     );
 
     if (!selectedProduct) {
       setMessage("Selected product is no longer available.");
+      return;
+    }
+
+    const currentLine = draft.items.find(
+      (item) => item.productId === draft.selectedProductId,
+    );
+    const reservedInDraft = currentLine?.quantity ?? 0;
+    const remaining = selectedProduct.stockQuantity - reservedInDraft;
+
+    if (draft.quantity > remaining) {
+      setMessage(stockWarning(Math.max(remaining, 0)));
       return;
     }
 
@@ -144,11 +173,28 @@ export function OrderManagement({ initialOrders, products }: OrderManagementProp
       return;
     }
 
+    const shortages = draft.items
+      .map((item) => {
+        const product = inventoryProducts.find((entry) => entry.id === item.productId);
+        const available = product?.stockQuantity ?? 0;
+        return {
+          requested: item.quantity,
+          available,
+          ok: item.quantity <= available,
+        };
+      })
+      .filter((row) => !row.ok);
+
+    if (shortages.length > 0) {
+      setMessage(stockWarning(shortages[0].available));
+      return;
+    }
+
     const now = new Date().toISOString();
     const orderId = `draft-order-${Date.now()}`;
 
     const items: OrderItem[] = draft.items.map((item, index) => {
-      const product = products.find((entry) => entry.id === item.productId);
+      const product = inventoryProducts.find((entry) => entry.id === item.productId);
       const unitPrice = product?.price ?? 0;
       return {
         id: `${orderId}-item-${index + 1}`,
@@ -177,14 +223,30 @@ export function OrderManagement({ initialOrders, products }: OrderManagementProp
       items,
     };
 
+    setInventoryProducts((current) =>
+      current.map((product) => {
+        const line = draft.items.find((item) => item.productId === product.id);
+        if (!line) {
+          return product;
+        }
+        const nextStock = Math.max(product.stockQuantity - line.quantity, 0);
+        return {
+          ...product,
+          stockQuantity: nextStock,
+          status: nextProductStatus(nextStock),
+          updatedAt: now,
+        };
+      }),
+    );
     setOrders((current) => [newOrder, ...current]);
+    setReservedOrderIds((current) => ({ ...current, [orderId]: true }));
     setDraft((current) => ({
       customerName: "",
       selectedProductId: current.selectedProductId,
       quantity: 1,
       items: [],
     }));
-    setMessage("Order created in frontend state.");
+    setMessage("Order created and stock deducted.");
   }
 
   function applyStatus(orderId: string) {
@@ -193,7 +255,47 @@ export function OrderManagement({ initialOrders, products }: OrderManagementProp
       return;
     }
 
+    const targetOrder = orders.find((order) => order.id === orderId);
+    if (!targetOrder) {
+      return;
+    }
+
+    const requiresReservation =
+      nextStatus === "CONFIRMED" && !reservedOrderIds[orderId];
+
+    if (requiresReservation) {
+      for (const item of targetOrder.items) {
+        const product = inventoryProducts.find((entry) => entry.id === item.productId);
+        const available = product?.stockQuantity ?? 0;
+
+        if (item.quantity > available) {
+          setMessage(stockWarning(available));
+          return;
+        }
+      }
+    }
+
     const now = new Date().toISOString();
+
+    if (requiresReservation) {
+      setInventoryProducts((current) =>
+        current.map((product) => {
+          const line = targetOrder.items.find((item) => item.productId === product.id);
+          if (!line) {
+            return product;
+          }
+
+          const nextStock = Math.max(product.stockQuantity - line.quantity, 0);
+          return {
+            ...product,
+            stockQuantity: nextStock,
+            status: nextProductStatus(nextStock),
+            updatedAt: now,
+          };
+        }),
+      );
+      setReservedOrderIds((current) => ({ ...current, [orderId]: true }));
+    }
 
     setOrders((current) =>
       current.map((order) => {
@@ -274,9 +376,9 @@ export function OrderManagement({ initialOrders, products }: OrderManagementProp
                 }))
               }
             >
-              {products.map((product) => (
+              {inventoryProducts.map((product) => (
                 <option key={product.id} value={product.id}>
-                  {product.name} (${product.price.toFixed(2)})
+                  {product.name} (${product.price.toFixed(2)}) - {product.stockQuantity} in stock
                 </option>
               ))}
             </select>
@@ -309,7 +411,9 @@ export function OrderManagement({ initialOrders, products }: OrderManagementProp
             <p className="empty">No products selected yet.</p>
           ) : (
             draft.items.map((item) => {
-              const product = products.find((entry) => entry.id === item.productId);
+              const product = inventoryProducts.find(
+                (entry) => entry.id === item.productId,
+              );
               if (!product) {
                 return null;
               }
@@ -405,7 +509,7 @@ export function OrderManagement({ initialOrders, products }: OrderManagementProp
                   <td>
                     <ul className="order-items-list">
                       {order.items.map((item) => {
-                        const product = products.find(
+                        const product = inventoryProducts.find(
                           (entry) => entry.id === item.productId,
                         );
                         return (
