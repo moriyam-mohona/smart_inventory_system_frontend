@@ -166,7 +166,8 @@ export function OrderManagement({
       const now = new Date().toISOString();
 
       for (const product of inventoryProducts) {
-        const belowThreshold = product.stockQuantity < product.minStockThreshold;
+        const belowThreshold =
+          product.stockQuantity < product.minStockThreshold;
         const existing = next[product.id];
 
         if (belowThreshold) {
@@ -667,10 +668,13 @@ export function OrderManagement({
           <div>
             <h2>Restock Queue</h2>
             <p className="card-subtitle">
-              Low-stock products are auto-added and sorted by lowest stock first.
+              Low-stock products are auto-added and sorted by lowest stock
+              first.
             </p>
           </div>
-          <span className="pill pending">Open Queue: {openRestockQueue.length}</span>
+          <span className="pill pending">
+            Open Queue: {openRestockQueue.length}
+          </span>
         </div>
 
         <div className="table-wrap">

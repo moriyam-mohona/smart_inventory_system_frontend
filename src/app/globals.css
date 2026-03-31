@@ -332,6 +332,13 @@ h3 {
   white-space: normal;
 }
 
+.product-summary-list {
+  list-style: disc;
+  margin-left: 1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
 .row {
   display: flex;
   gap: 0.75rem;
