@@ -276,10 +276,15 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   );
 
   const lowStockProduct = allProducts.find((product) => {
-    return getStockStatus(product.stockQuantity, product.minStockThreshold) === "low";
+    return (
+      getStockStatus(product.stockQuantity, product.minStockThreshold) === "low"
+    );
   });
   const okProduct = allProducts.find((product) => {
-    return getStockStatus(product.stockQuantity, product.minStockThreshold) === "in-stock";
+    return (
+      getStockStatus(product.stockQuantity, product.minStockThreshold) ===
+      "in-stock"
+    );
   });
 
   const prioritizedSummary: DashboardSummary["productSummary"] = [];

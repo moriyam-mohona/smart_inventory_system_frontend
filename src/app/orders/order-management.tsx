@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { getSession } from "@/lib/session-store";
 import type {
+  ActivityAction,
   DraftOrderItemInput,
   Order,
   OrderItem,
@@ -10,6 +12,7 @@ import type {
   Product,
   RestockPriority,
   RestockQueue,
+  UserRole,
 } from "@/types/inventory";
 
 interface OrderManagementProps {
@@ -26,6 +29,13 @@ interface OrderDraft {
 
 interface QueueEntry extends RestockQueue {
   productName: string;
+}
+
+interface ActivityEntry {
+  id: string;
+  action: ActivityAction;
+  message: string;
+  timestamp: string;
 }
 
 const statusOptions: OrderStatus[] = [
@@ -87,6 +97,13 @@ function toPriorityLabel(priority: RestockPriority) {
   return priority.toLowerCase();
 }
 
+function toTimeLabel(iso: string) {
+  return new Date(iso).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function OrderManagement({
   initialOrders,
   products,
@@ -105,6 +122,8 @@ export function OrderManagement({
   });
   const [statusFilter, setStatusFilter] = useState<"ALL" | OrderStatus>("ALL");
   const [dateFilter, setDateFilter] = useState("");
+  const [orderSearch, setOrderSearch] = useState("");
+  const [orderPage, setOrderPage] = useState(1);
   const [message, setMessage] = useState("");
   const [statusDrafts, setStatusDrafts] = useState<Record<string, OrderStatus>>(
     {},
@@ -115,6 +134,18 @@ export function OrderManagement({
   const [restockAmounts, setRestockAmounts] = useState<Record<string, number>>(
     {},
   );
+  const [currentRole, setCurrentRole] = useState<UserRole>("MANAGER");
+  const [activityLogs, setActivityLogs] = useState<ActivityEntry[]>(() => {
+    return initialOrders
+      .slice(0, 5)
+      .map((order) => ({
+        id: `seed-${order.id}`,
+        action: "ORDER_CREATED" as ActivityAction,
+        message: `Order #${order.orderNumber} created by user`,
+        timestamp: order.createdAt,
+      }))
+      .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  });
 
   const [draft, setDraft] = useState<OrderDraft>({
     customerName: "",
@@ -124,6 +155,8 @@ export function OrderManagement({
   });
 
   const filteredOrders = useMemo(() => {
+    const normalizedSearch = orderSearch.trim().toLowerCase();
+
     return orders
       .filter((order) => {
         const statusOk =
@@ -131,10 +164,14 @@ export function OrderManagement({
         const dateOk =
           dateFilter.length === 0 ||
           order.createdAt.slice(0, 10) === dateFilter;
-        return statusOk && dateOk;
+        const searchOk =
+          normalizedSearch.length === 0 ||
+          order.orderNumber.toLowerCase().includes(normalizedSearch) ||
+          order.customerName.toLowerCase().includes(normalizedSearch);
+        return statusOk && dateOk && searchOk;
       })
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [orders, statusFilter, dateFilter]);
+  }, [orders, statusFilter, dateFilter, orderSearch]);
 
   const draftTotal = useMemo(() => {
     return draft.items.reduce((sum, item) => {
@@ -159,7 +196,63 @@ export function OrderManagement({
       });
   }, [restockQueueMap]);
 
+  const orderPageSize = 5;
+  const orderTotalPages = Math.max(
+    1,
+    Math.ceil(filteredOrders.length / orderPageSize),
+  );
+  const activeOrderPage = Math.min(orderPage, orderTotalPages);
+  const paginatedOrders = filteredOrders.slice(
+    (activeOrderPage - 1) * orderPageSize,
+    activeOrderPage * orderPageSize,
+  );
+
+  const revenueByStatus = useMemo(() => {
+    const result: Record<OrderStatus, number> = {
+      PENDING: 0,
+      CONFIRMED: 0,
+      SHIPPED: 0,
+      DELIVERED: 0,
+      CANCELLED: 0,
+    };
+
+    for (const order of filteredOrders) {
+      result[order.status] += order.totalPrice;
+    }
+
+    return result;
+  }, [filteredOrders]);
+
+  const maxRevenue = Math.max(...Object.values(revenueByStatus), 1);
+
   useEffect(() => {
+    const session = getSession();
+    if (session?.role) {
+      setCurrentRole(session.role);
+    }
+  }, []);
+
+  function addActivity(
+    action: ActivityAction,
+    messageText: string,
+    timestamp = new Date().toISOString(),
+  ) {
+    const entry: ActivityEntry = {
+      id: `${action}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      action,
+      message: messageText,
+      timestamp,
+    };
+
+    setActivityLogs((current) => [entry, ...current].slice(0, 10));
+  }
+
+  useEffect(() => {
+    const queueActivityEvents: Array<{
+      action: ActivityAction;
+      message: string;
+    }> = [];
+
     setRestockQueueMap((current) => {
       let changed = false;
       const next: Record<string, QueueEntry> = { ...current };
@@ -190,6 +283,10 @@ export function OrderManagement({
               updatedAt: now,
               resolvedAt: null,
             };
+            queueActivityEvents.push({
+              action: "RESTOCK_QUEUE_ADDED",
+              message: `Product "${product.name}" added to Restock Queue`,
+            });
             changed = true;
             continue;
           }
@@ -236,6 +333,10 @@ export function OrderManagement({
 
       return changed ? next : current;
     });
+
+    for (const event of queueActivityEvents) {
+      addActivity(event.action, event.message);
+    }
   }, [inventoryProducts]);
 
   function addDraftItem() {
@@ -390,6 +491,11 @@ export function OrderManagement({
       quantity: 1,
       items: [],
     }));
+    addActivity(
+      "ORDER_CREATED",
+      `Order #${newOrder.orderNumber} created by user`,
+      now,
+    );
     setMessage("Order created and stock deducted.");
   }
 
@@ -466,10 +572,21 @@ export function OrderManagement({
       }),
     );
 
+    addActivity(
+      "ORDER_STATUS_UPDATED",
+      `Order #${targetOrder.orderNumber} marked as ${toStatusLabel(nextStatus)}`,
+      now,
+    );
+
     setMessage("Order status updated.");
   }
 
   function cancelOrder(orderId: string) {
+    if (currentRole !== "ADMIN") {
+      setMessage("Only Admin can cancel orders.");
+      return;
+    }
+
     const now = new Date().toISOString();
 
     setOrders((current) =>
@@ -490,6 +607,14 @@ export function OrderManagement({
       ...current,
       [orderId]: "CANCELLED",
     }));
+    const target = orders.find((order) => order.id === orderId);
+    if (target) {
+      addActivity(
+        "ORDER_CANCELLED",
+        `Order #${target.orderNumber} cancelled by user`,
+        now,
+      );
+    }
     setMessage("Order cancelled.");
   }
 
@@ -502,6 +627,9 @@ export function OrderManagement({
     }
 
     const now = new Date().toISOString();
+    const productName =
+      inventoryProducts.find((product) => product.id === productId)?.name ??
+      "Unknown product";
 
     setInventoryProducts((current) =>
       current.map((product) => {
@@ -523,10 +651,16 @@ export function OrderManagement({
       ...current,
       [productId]: 0,
     }));
+    addActivity("STOCK_UPDATED", `Stock updated for "${productName}"`, now);
     setMessage("Stock updated from restock action.");
   }
 
   function removeFromQueue(productId: string) {
+    if (currentRole !== "ADMIN") {
+      setMessage("Only Admin can remove items from the restock queue.");
+      return;
+    }
+
     const entry = restockQueueMap[productId];
     if (!entry || entry.status !== "OPEN") {
       return;
@@ -548,11 +682,41 @@ export function OrderManagement({
         resolvedAt: now,
       },
     }));
+    addActivity(
+      "RESTOCK_QUEUE_REMOVED",
+      `Product "${entry.productName}" removed from Restock Queue`,
+      now,
+    );
     setMessage("Item removed from restock queue.");
   }
 
   return (
     <>
+      <section className="card">
+        <div className="row spread center wrap">
+          <div>
+            <h2>Activity Log</h2>
+            <p className="card-subtitle">Latest 10 system actions.</p>
+          </div>
+          <span className="pill pending">
+            Role: {currentRole.toLowerCase()}
+          </span>
+        </div>
+
+        {activityLogs.length === 0 ? (
+          <p className="empty">No recent activity yet.</p>
+        ) : (
+          <ul className="activity-log-list">
+            {activityLogs.map((entry) => (
+              <li key={entry.id}>
+                <strong>{toTimeLabel(entry.timestamp)}</strong> -{" "}
+                {entry.message}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section className="card">
         <h2>Create New Order</h2>
         <p className="card-subtitle">
@@ -730,7 +894,10 @@ export function OrderManagement({
                       className="btn"
                       type="button"
                       onClick={() => removeFromQueue(entry.productId)}
-                      disabled={entry.currentStock < entry.minStockThreshold}
+                      disabled={
+                        entry.currentStock < entry.minStockThreshold ||
+                        currentRole !== "ADMIN"
+                      }
                     >
                       Remove
                     </button>
@@ -754,19 +921,33 @@ export function OrderManagement({
           <div>
             <h2>View and Manage Orders</h2>
             <p className="card-subtitle">
-              Filter by status or order date, then update status or cancel.
+              Search, filter, paginate, and manage orders efficiently.
             </p>
           </div>
 
-          <div className="row orders-filters">
+          <div className="row orders-filters wrap">
+            <label className="field compact-field">
+              Search
+              <input
+                className="input"
+                value={orderSearch}
+                onChange={(event) => {
+                  setOrderSearch(event.target.value);
+                  setOrderPage(1);
+                }}
+                placeholder="Order # or customer"
+              />
+            </label>
+
             <label className="field compact-field">
               Status
               <select
                 className="input"
                 value={statusFilter}
-                onChange={(event) =>
-                  setStatusFilter(event.target.value as "ALL" | OrderStatus)
-                }
+                onChange={(event) => {
+                  setStatusFilter(event.target.value as "ALL" | OrderStatus);
+                  setOrderPage(1);
+                }}
               >
                 <option value="ALL">All</option>
                 {statusOptions.map((status) => (
@@ -783,9 +964,35 @@ export function OrderManagement({
                 className="input"
                 type="date"
                 value={dateFilter}
-                onChange={(event) => setDateFilter(event.target.value)}
+                onChange={(event) => {
+                  setDateFilter(event.target.value);
+                  setOrderPage(1);
+                }}
               />
             </label>
+          </div>
+        </div>
+
+        <div className="analytics-chart card-subtle">
+          <h3>Revenue by Order Status</h3>
+          <div className="chart-grid">
+            {statusOptions.map((status) => {
+              const value = revenueByStatus[status];
+              const width = Math.max(
+                (value / maxRevenue) * 100,
+                value > 0 ? 8 : 0,
+              );
+
+              return (
+                <div key={status} className="chart-row">
+                  <span>{toStatusLabel(status)}</span>
+                  <div className="chart-track">
+                    <div className="chart-bar" style={{ width: `${width}%` }} />
+                  </div>
+                  <strong>${value.toFixed(2)}</strong>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -805,7 +1012,7 @@ export function OrderManagement({
               </tr>
             </thead>
             <tbody>
-              {filteredOrders.map((order) => (
+              {paginatedOrders.map((order) => (
                 <tr key={order.id}>
                   <td>{order.orderNumber}</td>
                   <td>{order.customerName}</td>
@@ -862,7 +1069,10 @@ export function OrderManagement({
                         className="btn"
                         type="button"
                         onClick={() => cancelOrder(order.id)}
-                        disabled={order.status === "CANCELLED"}
+                        disabled={
+                          order.status === "CANCELLED" ||
+                          currentRole !== "ADMIN"
+                        }
                       >
                         Cancel
                       </button>
@@ -870,7 +1080,7 @@ export function OrderManagement({
                   </td>
                 </tr>
               ))}
-              {filteredOrders.length === 0 ? (
+              {paginatedOrders.length === 0 ? (
                 <tr>
                   <td colSpan={7}>
                     <p className="empty">
@@ -881,6 +1091,39 @@ export function OrderManagement({
               ) : null}
             </tbody>
           </table>
+        </div>
+
+        <div className="row spread center pagination-row">
+          <p className="empty">
+            Showing{" "}
+            {(activeOrderPage - 1) * orderPageSize +
+              (paginatedOrders.length ? 1 : 0)}
+            -{(activeOrderPage - 1) * orderPageSize + paginatedOrders.length} of{" "}
+            {filteredOrders.length}
+          </p>
+          <div className="row">
+            <button
+              className="btn"
+              type="button"
+              disabled={activeOrderPage <= 1}
+              onClick={() => setOrderPage((prev) => Math.max(1, prev - 1))}
+            >
+              Previous
+            </button>
+            <span className="pill">
+              Page {activeOrderPage} / {orderTotalPages}
+            </span>
+            <button
+              className="btn"
+              type="button"
+              disabled={activeOrderPage >= orderTotalPages}
+              onClick={() =>
+                setOrderPage((prev) => Math.min(orderTotalPages, prev + 1))
+              }
+            >
+              Next
+            </button>
+          </div>
         </div>
       </section>
     </>

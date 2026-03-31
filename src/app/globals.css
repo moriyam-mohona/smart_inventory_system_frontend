@@ -308,7 +308,8 @@ h3 {
   font-size: 0.9rem;
 }
 
-.orders-filters {
+.orders-filters,
+.products-filters {
   align-items: flex-end;
 }
 
@@ -337,6 +338,57 @@ h3 {
   margin-left: 1rem;
   display: grid;
   gap: 0.45rem;
+}
+
+.activity-log-list {
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.activity-log-list li {
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--surface) 86%, #f5f8f2);
+  padding: 0.55rem 0.7rem;
+  white-space: normal;
+}
+
+.pagination-row {
+  margin-top: 0.8rem;
+}
+
+.card-subtle {
+  margin-top: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: color-mix(in srgb, var(--surface) 86%, #eef4ea);
+  padding: 0.8rem;
+}
+
+.chart-grid {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 90px;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.chart-track {
+  height: 0.65rem;
+  border-radius: 999px;
+  background: #e7ece0;
+  overflow: hidden;
+}
+
+.chart-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand), #2e8f68);
 }
 
 .row {

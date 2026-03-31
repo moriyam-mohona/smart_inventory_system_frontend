@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { signupWithEmail } from "@/lib/auth-service";
+import { saveSession } from "@/lib/session-store";
 import type { UserRole } from "@/types/inventory";
 
 export default function SignupPage() {
@@ -23,7 +24,8 @@ export default function SignupPage() {
       const result = await signupWithEmail({ name, email, password, role });
       setMessage(result.message);
 
-      if (result.ok) {
+      if (result.ok && result.session) {
+        saveSession(result.session);
         router.push("/dashboard");
       }
     });

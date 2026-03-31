@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { getDemoCredentials, loginWithEmail } from "@/lib/auth-service";
+import { saveSession } from "@/lib/session-store";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,7 +23,8 @@ export default function LoginPage() {
       const result = await loginWithEmail({ email, password });
       setMessage(result.message);
 
-      if (result.ok) {
+      if (result.ok && result.session) {
+        saveSession(result.session);
         router.push("/dashboard");
       }
     });
