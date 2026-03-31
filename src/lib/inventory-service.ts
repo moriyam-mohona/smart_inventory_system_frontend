@@ -45,12 +45,12 @@ const categories: Category[] = [
 const products: Product[] = [
   {
     id: "67f0a39cf9f9b2a2503f3001",
-    name: "Wireless Mouse",
-    sku: "ELEC-MOU-001",
+    name: "iPhone 13",
+    sku: "ELEC-PHN-013",
     categoryId: "67f0a39cf9f9b2a2503f1001",
-    price: 24.99,
-    stockQuantity: 53,
-    minStockThreshold: 12,
+    price: 899,
+    stockQuantity: 3,
+    minStockThreshold: 5,
     status: "ACTIVE",
     isActive: true,
     createdById: "67f0a39cf9f9b2a2503f2001",
@@ -73,12 +73,12 @@ const products: Product[] = [
   },
   {
     id: "67f0a39cf9f9b2a2503f3003",
-    name: "Premium Notebook",
-    sku: "OFFI-NOT-010",
+    name: "T-Shirt",
+    sku: "CLTH-TSH-001",
     categoryId: "67f0a39cf9f9b2a2503f1002",
-    price: 5.5,
-    stockQuantity: 116,
-    minStockThreshold: 25,
+    price: 19.99,
+    stockQuantity: 20,
+    minStockThreshold: 5,
     status: "ACTIVE",
     isActive: true,
     createdById: "67f0a39cf9f9b2a2503f2002",
@@ -252,30 +252,63 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   const allProducts = await getProducts();
   const allOrders = await getOrders();
 
-  const lowStockProducts = allProducts.filter(
+  const todayDate = new Date().toISOString().slice(0, 10);
+  const todaysOrders = allOrders.filter(
+    (order) => order.createdAt.slice(0, 10) === todayDate,
+  );
+
+  const pendingOrders = allOrders.filter((order) =>
+    ["PENDING", "CONFIRMED", "SHIPPED"].includes(order.status),
+  ).length;
+  const completedOrders = allOrders.filter(
+    (order) => order.status === "DELIVERED",
+  ).length;
+
+  const lowStockItemsCount = allProducts.filter(
     (product) =>
       getStockStatus(product.stockQuantity, product.minStockThreshold) ===
       "low",
   ).length;
 
-  const outOfStockProducts = allProducts.filter(
-    (product) =>
-      getStockStatus(product.stockQuantity, product.minStockThreshold) ===
-      "out-of-stock",
-  ).length;
-
-  const todayRevenue = allOrders.reduce(
+  const revenueToday = todaysOrders.reduce(
     (sum, order) => sum + order.totalPrice,
     0,
   );
 
+  const lowStockProduct = allProducts.find((product) => {
+    return getStockStatus(product.stockQuantity, product.minStockThreshold) === "low";
+  });
+  const okProduct = allProducts.find((product) => {
+    return getStockStatus(product.stockQuantity, product.minStockThreshold) === "in-stock";
+  });
+
+  const prioritizedSummary: DashboardSummary["productSummary"] = [];
+
+  if (lowStockProduct) {
+    prioritizedSummary.push({
+      id: lowStockProduct.id,
+      name: lowStockProduct.name,
+      stockQuantity: lowStockProduct.stockQuantity,
+      label: "Low Stock",
+    });
+  }
+
+  if (okProduct && (!lowStockProduct || okProduct.id !== lowStockProduct.id)) {
+    prioritizedSummary.push({
+      id: okProduct.id,
+      name: okProduct.name,
+      stockQuantity: okProduct.stockQuantity,
+      label: "OK",
+    });
+  }
+
   return {
-    totalProducts: allProducts.length,
-    lowStockProducts,
-    outOfStockProducts,
-    activeOrders: allOrders.filter((order) => order.status !== "DELIVERED")
-      .length,
-    todayRevenue,
+    totalOrdersToday: todaysOrders.length,
+    pendingOrders,
+    completedOrders,
+    lowStockItemsCount,
+    revenueToday,
+    productSummary: prioritizedSummary,
   };
 }
 

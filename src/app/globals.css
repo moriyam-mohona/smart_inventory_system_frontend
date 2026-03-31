@@ -235,6 +235,18 @@ h3 {
   color: var(--danger);
 }
 
+.pill.high {
+  color: var(--danger);
+}
+
+.pill.medium {
+  color: var(--warn);
+}
+
+.pill.low {
+  color: var(--success);
+}
+
 .auth-shell {
   width: min(520px, calc(100% - 2rem));
   margin: 2rem auto;

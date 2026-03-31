@@ -117,12 +117,20 @@ export interface ActivityLog {
 
 export type StockStatus = "in-stock" | "low" | "out-of-stock";
 
+export interface DashboardProductSummaryItem {
+  id: ObjectId;
+  name: string;
+  stockQuantity: number;
+  label: "Low Stock" | "OK";
+}
+
 export interface DashboardSummary {
-  totalProducts: number;
-  lowStockProducts: number;
-  outOfStockProducts: number;
-  activeOrders: number;
-  todayRevenue: number;
+  totalOrdersToday: number;
+  pendingOrders: number;
+  completedOrders: number;
+  lowStockItemsCount: number;
+  revenueToday: number;
+  productSummary: DashboardProductSummaryItem[];
 }
 
 export interface DraftOrderItemInput {
