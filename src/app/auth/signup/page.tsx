@@ -21,12 +21,13 @@ export default function SignupPage() {
     setMessage("");
 
     startTransition(async () => {
-      const result = await signupWithEmail({ name, email, password, role });
+      const result = await signupWithEmail({ name, email, password, role: "MANAGER" });
       setMessage(result.message);
 
-      if (result.ok && result.session) {
-        saveSession(result.session);
-        router.push("/dashboard");
+      if (result.ok) {
+        setTimeout(() => {
+          router.push(`/auth/verify-otp?type=signup&email=${encodeURIComponent(email)}`);
+        }, 1500);
       }
     });
   }
@@ -92,17 +93,6 @@ export default function SignupPage() {
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-900">Role</label>
-            <select
-              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-3 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all text-slate-900"
-              value={role}
-              onChange={(event) => setRole(event.target.value as UserRole)}
-            >
-              <option value="MANAGER" className="text-slate-900">Manager</option>
-              <option value="ADMIN" className="text-slate-900">Administrator</option>
-            </select>
-          </div>
         </div>
 
         <button
