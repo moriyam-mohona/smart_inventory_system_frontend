@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Manrope, Space_Grotesk } from "next/font/google";
+import NextTopLoader from 'nextjs-toploader';
 import "./globals.css";
 
 const headingFont = Space_Grotesk({
@@ -26,7 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${headingFont.variable} ${bodyFont.variable}`}>
-      <body>{children}</body>
+      <body>
+        <NextTopLoader color="#2dd4bf" showSpinner={false} />
+        {children}
+      </body>
     </html>
   );
 }
