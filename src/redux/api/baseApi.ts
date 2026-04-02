@@ -22,7 +22,7 @@ const baseQuery = fetchBaseQuery({
     headers.set("accept", "application/json");
 
     if (access_token) {
-      headers.set("authorization", `${access_token}`);
+      headers.set("authorization", `Bearer ${access_token}`);
     }
 
     return headers;
@@ -65,8 +65,8 @@ const baseQueryWithRefreshToken: BaseQueryFn<
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            authorization: `${refreshToken}`,
           },
+          body: JSON.stringify({ refreshToken }),
         },
       );
 

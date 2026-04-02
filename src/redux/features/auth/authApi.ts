@@ -15,9 +15,18 @@ const authApi = baseApi.injectEndpoints({
     login: builder.mutation({
       query: (userInfo) => {
         return {
-          url: "/auth/signin",
+          url: "/auth/login",
           method: "POST",
           body: userInfo,
+        };
+      },
+      invalidatesTags: ["user"],
+    }),
+    demoLogin: builder.mutation({
+      query: () => {
+        return {
+          url: "/auth/demo-login",
+          method: "POST",
         };
       },
       invalidatesTags: ["user"],
@@ -25,22 +34,40 @@ const authApi = baseApi.injectEndpoints({
     forgotPassword: builder.mutation({
       query: (userInfo) => {
         return {
-          url: "/auth/forget-password",
+          url: "/auth/forgot-password",
           method: "POST",
           body: userInfo,
         };
       },
       invalidatesTags: ["user"],
     }),
+    verifyForgotPasswordOtp: builder.mutation({
+      query: (userInfo) => {
+        return {
+          url: "/auth/verify-forgot-password-otp",
+          method: "POST",
+          body: userInfo,
+        };
+      },
+    }),
     resetPassword: builder.mutation({
       query: (userInfo) => {
         return {
           url: "/auth/reset-password",
-          method: "PATCH",
+          method: "POST",
           body: userInfo,
         };
       },
       invalidatesTags: ["user"],
+    }),
+    refreshToken: builder.mutation({
+      query: (refreshToken) => {
+        return {
+          url: "/auth/refresh-token",
+          method: "POST",
+          body: { refreshToken },
+        };
+      },
     }),
     updateUser: builder.mutation({
       query: (userInfo) => {
@@ -68,7 +95,7 @@ const authApi = baseApi.injectEndpoints({
             url: "/auth/me",
             method: "GET",
             headers: {
-              Authorization: `${accessToken}`,
+              Authorization: `Bearer ${accessToken}`,
             },
             credentials: "include",
           };
@@ -104,7 +131,7 @@ const authApi = baseApi.injectEndpoints({
       query: (queryData) => {
         const queryParams = createQueryParams(queryData);
         return {
-          url: `/auth/all-users${queryParams}`,
+          url: `/auth${queryParams}`,
           method: "GET",
         };
       },
@@ -119,6 +146,25 @@ const authApi = baseApi.injectEndpoints({
       },
       providesTags: ["user"],
     }),
+    createAccount: builder.mutation({
+      query: (userInfo) => {
+        return {
+          url: "/auth/create-account",
+          method: "POST",
+          body: userInfo,
+        };
+      },
+      invalidatesTags: ["user"],
+    }),
+    approveUser: builder.mutation({
+      query: (userId) => {
+        return {
+          url: `/auth/approve/${userId}`,
+          method: "POST",
+        };
+      },
+      invalidatesTags: ["user"],
+    }),
   }),
 });
 
@@ -126,8 +172,11 @@ export const {
   useCreateUserMutation,
   useOtpMutation,
   useLoginMutation,
+  useDemoLoginMutation,
   useForgotPasswordMutation,
+  useVerifyForgotPasswordOtpMutation,
   useResetPasswordMutation,
+  useRefreshTokenMutation,
   useUpdateUserMutation,
   useGetMeQuery,
   useLazyGetMeQuery,
@@ -135,4 +184,6 @@ export const {
   useUpdateCustomerMutation,
   useGetAllUsersQuery,
   useGetSingleUserDetailsQuery,
+  useCreateAccountMutation,
+  useApproveUserMutation,
 } = authApi;

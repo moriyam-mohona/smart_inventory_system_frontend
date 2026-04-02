@@ -13,7 +13,7 @@ export interface SignupFormInput {
 }
 
 export interface AuthSession {
-  userId: string;
+  id: string;
   name: string;
   email: string;
   role: UserRole;
@@ -23,6 +23,10 @@ export interface AuthResult {
   ok: boolean;
   message: string;
   session?: AuthSession;
+  accessToken?: string;
+  refreshToken?: string;
+  resetToken?: string;
+  email?: string;
 }
 
 export interface DemoCredentials {
