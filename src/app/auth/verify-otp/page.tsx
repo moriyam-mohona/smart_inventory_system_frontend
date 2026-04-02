@@ -1,8 +1,11 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useTransition, Suspense } from "react";
+import { useEffect, useMemo, useState, useTransition, Suspense } from "react";
 import { verifyOtp } from "@/lib/auth-service";
+import { verifyOtpSchema } from "@/lib/validation/auth";
+
+const RESET_OTP_EXPIRY_MS = 5 * 60 * 1000;
 
 function VerifyOtpContent() {
   const router = useRouter();
@@ -12,10 +15,51 @@ function VerifyOtpContent() {
 
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
+  const [fieldError, setFieldError] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [expiresAt] = useState(() => Date.now() + RESET_OTP_EXPIRY_MS);
+  const [secondsLeft, setSecondsLeft] = useState(300);
+
+  const isResetFlow = type === "reset";
+
+  const countdownLabel = useMemo(() => {
+    const safeSeconds = Math.max(0, secondsLeft);
+    const min = Math.floor(safeSeconds / 60);
+    const sec = safeSeconds % 60;
+    return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  }, [secondsLeft]);
+
+  useEffect(() => {
+    if (!isResetFlow || !email) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      const next = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+      setSecondsLeft(next);
+    }, 1000);
+
+    const timeoutId = window.setTimeout(() => {
+      router.replace(
+        `/auth/forgot-password?email=${encodeURIComponent(email)}&expired=1`,
+      );
+    }, RESET_OTP_EXPIRY_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [email, expiresAt, isResetFlow, router]);
 
   function handleVerify() {
     setMessage("");
+    setFieldError("");
+
+    const parsed = verifyOtpSchema.safeParse({ otp });
+    if (!parsed.success) {
+      setFieldError(parsed.error.issues[0]?.message || "Invalid OTP");
+      return;
+    }
 
     startTransition(async () => {
       const result = await verifyOtp(email, otp, type);
@@ -65,6 +109,11 @@ function VerifyOtpContent() {
           <strong className="text-slate-700">{email}</strong>.
           {type === "reset" && " This code expires in 5 minutes."}
         </p>
+        {isResetFlow ? (
+          <p className="text-xs font-semibold text-amber-700 mt-2">
+            OTP expires in {countdownLabel}
+          </p>
+        ) : null}
       </div>
 
       {message && (
@@ -89,9 +138,17 @@ function VerifyOtpContent() {
             type="text"
             maxLength={6}
             value={otp}
-            onChange={(event) => setOtp(event.target.value.replace(/\D/g, ""))}
+            onChange={(event) => {
+              setOtp(event.target.value.replace(/\D/g, ""));
+              setFieldError("");
+            }}
             placeholder="• • • • • •"
           />
+          {fieldError ? (
+            <p className="text-xs text-red-600 text-center mt-1">
+              {fieldError}
+            </p>
+          ) : null}
           <p className="text-xs text-slate-400 text-center mt-1">
             Demo Code: 123456
           </p>
@@ -102,7 +159,9 @@ function VerifyOtpContent() {
         className="btn-primary"
         type="button"
         onClick={handleVerify}
-        disabled={isPending || otp.length !== 6}
+        disabled={
+          isPending || otp.length !== 6 || (isResetFlow && secondsLeft <= 0)
+        }
       >
         {isPending ? "Verifying..." : "Verify OTP"}
       </button>

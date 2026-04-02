@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { signupWithEmail } from "@/lib/auth-service";
+import { signupSchema } from "@/lib/validation/auth";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -13,10 +14,34 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+  }>({});
   const [isPending, startTransition] = useTransition();
 
   function handleSignup() {
     setMessage("");
+    setFieldErrors({});
+
+    const parsed = signupSchema.safeParse({ name, email, password });
+
+    if (!parsed.success) {
+      const nextFieldErrors: {
+        name?: string;
+        email?: string;
+        password?: string;
+      } = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0];
+        if (key === "name" || key === "email" || key === "password") {
+          nextFieldErrors[key] = issue.message;
+        }
+      }
+      setFieldErrors(nextFieldErrors);
+      return;
+    }
 
     startTransition(async () => {
       const result = await signupWithEmail({
@@ -81,9 +106,15 @@ export default function SignupPage() {
             <input
               className="w-full border border-slate-200 rounded-xl bg-white px-4 py-3 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all text-slate-900"
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => {
+                setName(event.target.value);
+                setFieldErrors((prev) => ({ ...prev, name: undefined }));
+              }}
               placeholder="John Doe"
             />
+            {fieldErrors.name ? (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.name}</p>
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -95,9 +126,15 @@ export default function SignupPage() {
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setFieldErrors((prev) => ({ ...prev, email: undefined }));
+              }}
               placeholder="you@company.com"
             />
+            {fieldErrors.email ? (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -110,7 +147,10 @@ export default function SignupPage() {
                 type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                }}
                 placeholder="At least 8 characters"
               />
               <button
@@ -119,9 +159,42 @@ export default function SignupPage() {
                 onClick={() => setShowPassword((prev) => !prev)}
                 className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-800"
               >
-                {showPassword ? "Hide" : "Show"}
+                {showPassword ? (
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 3l18 18" />
+                    <path d="M10.58 10.58a2 2 0 1 0 2.83 2.83" />
+                    <path d="M9.88 5.09A10.94 10.94 0 0 1 12 5c5 0 9.27 3.11 11 7-0.52 1.18-1.27 2.26-2.22 3.18" />
+                    <path d="M6.61 6.61C4.62 7.86 3.12 9.75 2 12c1.73 3.89 6 7 10 7 1.63 0 3.18-0.33 4.59-0.91" />
+                  </svg>
+                ) : (
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
               </button>
             </div>
+            {fieldErrors.password ? (
+              <p className="text-xs text-red-600 mt-1">
+                {fieldErrors.password}
+              </p>
+            ) : null}
           </div>
         </div>
 

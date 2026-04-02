@@ -1,4 +1,5 @@
 import { FormModalShell } from "@/components/form-modal-shell";
+import { RoleVisibility } from "@/components/role-visibility";
 
 interface Params {
   id: string;
@@ -93,29 +94,31 @@ export default async function OrderDetailPage({
           </div>
         </div>
 
-        <div
-          className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm"
-          style={{ marginTop: "2rem" }}
-        >
-          <h3>Update Status</h3>
-          <label className="flex flex-col gap-2 w-full">
-            <span>Order Status</span>
-            <select className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500">
-              <option>PENDING</option>
-              <option>CONFIRMED</option>
-              <option>SHIPPED</option>
-              <option>DELIVERED</option>
-              <option>CANCELLED</option>
-            </select>
-          </label>
+        <RoleVisibility roles={["MANAGER"]}>
+          <div
+            className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm"
+            style={{ marginTop: "2rem" }}
+          >
+            <h3>Update Status</h3>
+            <label className="flex flex-col gap-2 w-full">
+              <span>Order Status</span>
+              <select className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500">
+                <option>PENDING</option>
+                <option>CONFIRMED</option>
+                <option>SHIPPED</option>
+                <option>DELIVERED</option>
+                <option>CANCELLED</option>
+              </select>
+            </label>
 
-          <div className="setup-actions" style={{ marginTop: "1.5rem" }}>
-            <button className="btn-primary">Update Status</button>
-            <button className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-primary-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-700/50">
-              Cancel
-            </button>
+            <div className="setup-actions" style={{ marginTop: "1.5rem" }}>
+              <button className="btn-primary">Update Status</button>
+              <button className="inline-flex items-center justify-center px-4 py-2 border border-red-200 bg-red-50 text-red-700 rounded-xl font-semibold text-sm hover:bg-red-100 transition-all focus:outline-none focus:ring-2 focus:ring-red-400/50">
+                Delete Order
+              </button>
+            </div>
           </div>
-        </div>
+        </RoleVisibility>
       </div>
     </FormModalShell>
   );

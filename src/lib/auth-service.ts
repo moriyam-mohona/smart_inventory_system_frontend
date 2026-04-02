@@ -13,6 +13,26 @@ const DEMO_CREDENTIALS: DemoCredentials = {
   password: process.env.NEXT_PUBLIC_DEMO_PASSWORD || "Demo@12345",
 };
 
+type ApiErrorResponse = {
+  message?: string;
+  errorMessages?: Array<{ message?: string }>;
+};
+
+function extractApiErrorMessage(
+  data: ApiErrorResponse,
+  fallback: string,
+): string {
+  const detailedMessage = data?.errorMessages?.find(
+    (item) => item?.message,
+  )?.message;
+
+  if (detailedMessage) {
+    return detailedMessage;
+  }
+
+  return data?.message || fallback;
+}
+
 function pause(ms = 260) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -49,7 +69,10 @@ export async function loginWithEmail(
     if (!response.ok) {
       return {
         ok: false,
-        message: data.message || "Login failed. Please check your credentials.",
+        message: extractApiErrorMessage(
+          data,
+          "Login failed. Please check your credentials.",
+        ),
       };
     }
 
@@ -122,7 +145,10 @@ export async function signupWithEmail(
     if (!response.ok) {
       return {
         ok: false,
-        message: data.message || "Signup failed. Please try again.",
+        message: extractApiErrorMessage(
+          data,
+          "Signup failed. Please try again.",
+        ),
       };
     }
 
@@ -172,7 +198,7 @@ export async function verifyOtp(
     if (!response.ok) {
       return {
         ok: false,
-        message: data.message || "OTP verification failed.",
+        message: extractApiErrorMessage(data, "OTP verification failed."),
       };
     }
 
@@ -185,7 +211,7 @@ export async function verifyOtp(
       return {
         ok: true,
         message: "Verification complete. Valid token generated.",
-        resetToken: data.resetToken,
+        resetToken: data.data.resetToken,
       };
     }
   } catch (error) {
@@ -219,7 +245,10 @@ export async function requestPasswordReset(
     if (!response.ok) {
       return {
         ok: false,
-        message: data.message || "Failed to request password reset.",
+        message: extractApiErrorMessage(
+          data,
+          "Failed to request password reset.",
+        ),
       };
     }
 
@@ -260,7 +289,7 @@ export async function resetPassword(
     if (!response.ok) {
       return {
         ok: false,
-        message: data.message || "Failed to reset password.",
+        message: extractApiErrorMessage(data, "Failed to reset password."),
       };
     }
 

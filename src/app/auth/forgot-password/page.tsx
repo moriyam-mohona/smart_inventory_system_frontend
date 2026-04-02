@@ -1,18 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
 import { requestPasswordReset } from "@/lib/auth-service";
+import { forgotPasswordSchema } from "@/lib/validation/auth";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [fieldError, setFieldError] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    const emailFromQuery = searchParams.get("email") || "";
+    const expired = searchParams.get("expired") === "1";
+
+    if (emailFromQuery) {
+      setEmail(emailFromQuery);
+    }
+
+    if (expired) {
+      setMessage(
+        "Your previous OTP expired after 5 minutes. Please request a new OTP.",
+      );
+    }
+  }, [searchParams]);
 
   function handleSubmit() {
     setMessage("");
+    setFieldError("");
+
+    const parsed = forgotPasswordSchema.safeParse({ email });
+    if (!parsed.success) {
+      setFieldError(parsed.error.issues[0]?.message || "Enter a valid email");
+      return;
+    }
+
     startTransition(async () => {
       const result = await requestPasswordReset(email);
       setMessage(result.message);
@@ -79,9 +105,15 @@ export default function ForgotPasswordPage() {
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setFieldError("");
+              }}
               placeholder="you@company.com"
             />
+            {fieldError ? (
+              <p className="text-xs text-red-600 mt-1">{fieldError}</p>
+            ) : null}
           </div>
         </div>
 

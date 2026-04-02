@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getOrders } from "@/lib/inventory-service";
+import { RoleVisibility } from "@/components/role-visibility";
 
 export const dynamic = "force-dynamic";
 
@@ -41,19 +42,21 @@ export default async function OrdersPage() {
               </p>
             </div>
           </div>
-          <Link
-            href="/dashboard/orders/new"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-amber-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-amber-600/50 focus:ring-offset-2 active:scale-95"
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Create Order
-          </Link>
+          <RoleVisibility roles={["MANAGER"]}>
+            <Link
+              href="/dashboard/orders/new"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-amber-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-amber-600/50 focus:ring-offset-2 active:scale-95"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Create Order
+            </Link>
+          </RoleVisibility>
         </div>
       </div>
 
@@ -201,19 +204,21 @@ export default async function OrdersPage() {
           <p className="text-slate-500 mb-6">
             Start managing orders by creating your first order.
           </p>
-          <Link
-            href="/dashboard/orders/new"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-amber-600/30 transition-all"
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Create Your First Order
-          </Link>
+          <RoleVisibility roles={["MANAGER"]}>
+            <Link
+              href="/dashboard/orders/new"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-amber-600/30 transition-all"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Create Your First Order
+            </Link>
+          </RoleVisibility>
         </div>
       )}
     </div>

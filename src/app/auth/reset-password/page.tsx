@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useTransition, Suspense } from "react";
 import { resetPassword } from "@/lib/auth-service";
+import { resetPasswordSchema } from "@/lib/validation/auth";
 
 function ResetPasswordContent() {
   const router = useRouter();
@@ -15,13 +16,33 @@ function ResetPasswordContent() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{
+    newPassword?: string;
+    confirmPassword?: string;
+  }>({});
   const [isPending, startTransition] = useTransition();
 
   function handleReset() {
     setMessage("");
+    setFieldErrors({});
 
-    if (newPassword !== confirmPassword) {
-      setMessage("Passwords do not match.");
+    const parsed = resetPasswordSchema.safeParse({
+      newPassword,
+      confirmPassword,
+    });
+
+    if (!parsed.success) {
+      const nextFieldErrors: {
+        newPassword?: string;
+        confirmPassword?: string;
+      } = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0];
+        if (key === "newPassword" || key === "confirmPassword") {
+          nextFieldErrors[key] = issue.message;
+        }
+      }
+      setFieldErrors(nextFieldErrors);
       return;
     }
 
@@ -89,7 +110,10 @@ function ResetPasswordContent() {
               type={showNewPassword ? "text" : "password"}
               autoComplete="new-password"
               value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
+              onChange={(event) => {
+                setNewPassword(event.target.value);
+                setFieldErrors((prev) => ({ ...prev, newPassword: undefined }));
+              }}
               placeholder="At least 8 characters"
             />
             <button
@@ -100,9 +124,42 @@ function ResetPasswordContent() {
               onClick={() => setShowNewPassword((prev) => !prev)}
               className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-800"
             >
-              {showNewPassword ? "Hide" : "Show"}
+              {showNewPassword ? (
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 3l18 18" />
+                  <path d="M10.58 10.58a2 2 0 1 0 2.83 2.83" />
+                  <path d="M9.88 5.09A10.94 10.94 0 0 1 12 5c5 0 9.27 3.11 11 7-0.52 1.18-1.27 2.26-2.22 3.18" />
+                  <path d="M6.61 6.61C4.62 7.86 3.12 9.75 2 12c1.73 3.89 6 7 10 7 1.63 0 3.18-0.33 4.59-0.91" />
+                </svg>
+              ) : (
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
             </button>
           </div>
+          {fieldErrors.newPassword ? (
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.newPassword}
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-sm font-semibold text-slate-900">
@@ -114,7 +171,13 @@ function ResetPasswordContent() {
               type={showConfirmPassword ? "text" : "password"}
               autoComplete="new-password"
               value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
+              onChange={(event) => {
+                setConfirmPassword(event.target.value);
+                setFieldErrors((prev) => ({
+                  ...prev,
+                  confirmPassword: undefined,
+                }));
+              }}
               placeholder="Confirm your new password"
             />
             <button
@@ -127,9 +190,42 @@ function ResetPasswordContent() {
               onClick={() => setShowConfirmPassword((prev) => !prev)}
               className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-800"
             >
-              {showConfirmPassword ? "Hide" : "Show"}
+              {showConfirmPassword ? (
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 3l18 18" />
+                  <path d="M10.58 10.58a2 2 0 1 0 2.83 2.83" />
+                  <path d="M9.88 5.09A10.94 10.94 0 0 1 12 5c5 0 9.27 3.11 11 7-0.52 1.18-1.27 2.26-2.22 3.18" />
+                  <path d="M6.61 6.61C4.62 7.86 3.12 9.75 2 12c1.73 3.89 6 7 10 7 1.63 0 3.18-0.33 4.59-0.91" />
+                </svg>
+              ) : (
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
             </button>
           </div>
+          {fieldErrors.confirmPassword ? (
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.confirmPassword}
+            </p>
+          ) : null}
         </div>
       </div>
 

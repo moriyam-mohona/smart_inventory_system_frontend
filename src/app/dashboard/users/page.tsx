@@ -55,7 +55,11 @@ export default function UsersPage() {
                   </td>
                   <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td>
-                    <button className="text-btn">Edit</button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button className="text-btn">Delete</button>
+                      <button className="text-btn">Restrict</button>
+                      <button className="text-btn">Login as User</button>
+                    </div>
                   </td>
                 </tr>
               ))}

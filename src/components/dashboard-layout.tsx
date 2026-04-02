@@ -16,7 +16,7 @@ export function DashboardLayout({
   userRole,
 }: DashboardLayoutProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] min-h-screen bg-slate-50">
+    <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] min-h-screen bg-[radial-gradient(circle_at_top,_rgba(79,70,229,0.08),_transparent_35%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)]">
       <DashboardSidebar userRole={userRole} userName={userName} />
 
       <div className="flex flex-col min-h-screen overflow-hidden">

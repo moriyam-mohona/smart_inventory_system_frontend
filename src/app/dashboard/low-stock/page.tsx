@@ -13,7 +13,7 @@ export default async function LowStockPage() {
   return (
     <div>
       <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
-        <h2>Low Stock Items</h2>
+        <h2>Restock Queue</h2>
         <p className="card-subtitle">Products that need restocking soon</p>
       </div>
 
