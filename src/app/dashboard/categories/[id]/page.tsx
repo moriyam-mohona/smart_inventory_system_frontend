@@ -2,7 +2,7 @@ interface Params {
   id: string;
 }
 
-export default function CategoryDetailPage({ params }: { params: Params }) {
+export default async function CategoryDetailPage({ params }: { params: Promise<Params> }) {
   return (
     <div>
       <div className="card" style={{ marginBottom: "2rem" }}>

@@ -1,0 +1,48 @@
+
+> smart-inventory-system-frontend@0.1.0 build
+> next build --webpack
+
+▲ Next.js 16.2.1 (webpack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1745ms
+  Running TypeScript ...
+  Finished TypeScript in 2.3s ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/19) ...
+  Generating static pages using 15 workers (4/19) 
+  Generating static pages using 15 workers (9/19) 
+  Generating static pages using 15 workers (14/19) 
+✓ Generating static pages using 15 workers (19/19) in 1374ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)                     Revalidate  Expire
+┌ ○ /
+├ ○ /_not-found
+├ ○ /auth/login
+├ ○ /auth/signup
+├ ○ /categories                         3m      1y
+├ ƒ /dashboard
+├ ○ /dashboard/activity                 1m      1y
+├ ○ /dashboard/analytics                2m      1y
+├ ○ /dashboard/categories               2m      1y
+├ ƒ /dashboard/categories/[id]
+├ ○ /dashboard/categories/new
+├ ○ /dashboard/low-stock                1m      1y
+├ ƒ /dashboard/orders
+├ ƒ /dashboard/orders/[id]
+├ ƒ /dashboard/orders/new
+├ ○ /dashboard/products                 2m      1y
+├ ƒ /dashboard/products/[id]
+├ ○ /dashboard/products/new             2m      1y
+├ ○ /dashboard/users
+├ ƒ /orders
+├ ○ /orders/new
+├ ○ /products                           2m      1y
+└ ○ /products/new
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

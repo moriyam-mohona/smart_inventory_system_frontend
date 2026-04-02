@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { signupWithEmail } from "@/lib/auth-service";
 import { saveSession } from "@/lib/session-store";
 import type { UserRole } from "@/types/inventory";
+import styles from "../auth.module.css";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -32,97 +33,88 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="auth-shell">
-      <section className="auth-panel">
-        <p className="eyebrow">Get Started</p>
-        <h1>Create Your Account</h1>
-        <p className="auth-subtitle">
-          Join your inventory management system and start organizing
-        </p>
-
-        <label className="field">
-          <span>Full Name</span>
-          <input
-            className="input"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="John Doe"
-          />
-        </label>
-
-        <label className="field">
-          <span>Email Address</span>
-          <input
-            className="input"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="john@company.com"
-          />
-        </label>
-
-        <label className="field">
-          <span>Password</span>
-          <input
-            className="input"
-            type="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 8 characters"
-          />
-        </label>
-
-        <label className="field">
-          <span>Role</span>
-          <select
-            className="input"
-            value={role}
-            onChange={(event) => setRole(event.target.value as UserRole)}
-          >
-            <option value="MANAGER">Manager</option>
-            <option value="ADMIN">Administrator</option>
-          </select>
-        </label>
-
-        {message ? <p className="server-message">{message}</p> : null}
-
-        <div className="auth-actions">
-          <button
-            className="btn primary"
-            type="button"
-            onClick={handleSignup}
-            disabled={
-              isPending ||
-              name.trim().length < 2 ||
-              email.trim().length < 3 ||
-              password.length < 8
-            }
-          >
-            {isPending ? "Creating account..." : "Create Account"}
-          </button>
+    <main className={styles.authShell}>
+      <section className={styles.authPanel}>
+        <div className={styles.brandLogo}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        
+        <div>
+          <h1>Create Account</h1>
+          <p className={styles.authSubtitle}>
+            Join your smart inventory system
+          </p>
         </div>
 
-        <p className="auth-footnote">
-          Already have an account? <Link href="/auth/login">Sign in</Link>
-        </p>
-      </section>
-    </main>
-  );
-}
-          >
-            {isPending ? "Creating..." : "Create account"}
-          </button>
-          <Link className="btn" href="/auth/login">
-            Back to login
-          </Link>
+        {message && <div className={styles.serverMessage}>{message}</div>}
+
+        <div className={styles.formGrid}>
+          <div className={styles.field}>
+            <label>Full Name</label>
+            <input
+              className={styles.input}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="John Doe"
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label>Email Address</label>
+            <input
+              className={styles.input}
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@company.com"
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label>Password</label>
+            <input
+              className={styles.input}
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="At least 8 characters"
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label>Role</label>
+            <select
+              className={styles.input}
+              value={role}
+              onChange={(event) => setRole(event.target.value as UserRole)}
+            >
+              <option value="MANAGER" style={{color: "black"}}>Manager</option>
+              <option value="ADMIN" style={{color: "black"}}>Administrator</option>
+            </select>
+          </div>
         </div>
 
-        {message ? <p className="server-message">{message}</p> : null}
+        <button
+          className={styles.btnPrimary}
+          type="button"
+          onClick={handleSignup}
+          disabled={
+            isPending ||
+            name.trim().length < 2 ||
+            email.trim().length < 3 ||
+            password.length < 8
+          }
+        >
+          {isPending ? "Creating account..." : "Create Account"}
+        </button>
 
-        <p className="auth-footnote">
-          Already registered? <Link href="/auth/login">Sign in</Link>
+        <p className={styles.footerText}>
+          Already have an account? <Link href="/auth/login">Sign in here</Link>
         </p>
       </section>
     </main>

@@ -1,0 +1,24 @@
+
+> smart-inventory-system-frontend@0.1.0 build
+> next build --webpack
+
+▲ Next.js 16.2.1 (webpack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1660ms
+  Running TypeScript ...
+Failed to type check.
+
+.next/types/app/dashboard/categories/[id]/page.ts:37:29
+Type error: Type '{ params: Params; }' does not satisfy the constraint 'PageProps'.
+  Types of property 'params' are incompatible.
+    Type 'Params' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+
+  [90m35 |[0m
+  [90m36 |[0m [90m// Check the prop type of the entry function[0m
+[31m[1m>[0m [90m37 |[0m checkFields<[33mDiff[0m<[33mPageProps[0m, [33mFirstArg[0m<[33mTEntry[0m[[32m'default'[0m]>, [32m'default'[0m>>()
+  [90m   |[0m                             [31m[1m^[0m
+  [90m38 |[0m
+  [90m39 |[0m [90m// Check the arguments and return type of the generateMetadata function[0m
+  [90m40 |[0m [36mif[0m ([32m'generateMetadata'[0m [36min[0m entry) {
+Next.js build worker exited with code: 1 and signal: null

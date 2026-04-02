@@ -2,7 +2,8 @@ interface Params {
   id: string;
 }
 
-export default function OrderDetailPage({ params }: { params: Params }) {
+export default async function OrderDetailPage({ params }: { params: Promise<Params> }) {
+  const { id } = await params;
   return (
     <div>
       <div className="card" style={{ marginBottom: "2rem" }}>
@@ -15,7 +16,7 @@ export default function OrderDetailPage({ params }: { params: Params }) {
           <h3>Order Information</h3>
           <div style={{ marginTop: "1rem" }}>
             <p>
-              <strong>Order ID:</strong> #{params.id.slice(-6)}
+              <strong>Order ID:</strong> #{id.slice(-6)}
             </p>
             <p>
               <strong>Customer:</strong> John Doe
