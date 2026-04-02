@@ -18,6 +18,29 @@ type ApiErrorResponse = {
   errorMessages?: Array<{ message?: string }>;
 };
 
+export type AdminManagedUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  createdAt?: string;
+  updatedAt?: string;
+  isActive?: boolean;
+  isDeleted?: boolean;
+  [key: string]: unknown;
+};
+
+export type ManagerFullDetails = {
+  profile?: Record<string, unknown>;
+  categories?: Array<Record<string, unknown>>;
+  products?: Array<Record<string, unknown>>;
+  orders?: Array<Record<string, unknown>>;
+  orderItems?: Array<Record<string, unknown>>;
+  activityLogs?: Array<Record<string, unknown>>;
+  summary?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
 function extractApiErrorMessage(
   data: ApiErrorResponse,
   fallback: string,
@@ -35,6 +58,26 @@ function extractApiErrorMessage(
 
 function pause(ms = 260) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function parseApiResponse(response: Response) {
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      extractApiErrorMessage(
+        data as ApiErrorResponse,
+        "Request failed. Please try again.",
+      ),
+    );
+  }
+  return data;
+}
+
+function authHeaders(accessToken: string) {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${accessToken}`,
+  };
 }
 
 export function getDemoCredentials(): DemoCredentials {
@@ -304,4 +347,102 @@ export async function resetPassword(
       message: "Network error. Please check your connection and try again.",
     };
   }
+}
+
+export async function getAllUsersAdmin(
+  accessToken: string,
+): Promise<AdminManagedUser[]> {
+  const response = await fetch(`${API_URL}/auth`, {
+    method: "GET",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
+
+  const data = await parseApiResponse(response);
+
+  console.log(data);
+  const payload = (data as { data?: unknown }).data;
+
+  if (Array.isArray(payload)) {
+    return payload as AdminManagedUser[];
+  }
+
+  if (
+    payload &&
+    typeof payload === "object" &&
+    Array.isArray((payload as { users?: unknown[] }).users)
+  ) {
+    return (payload as { users: AdminManagedUser[] }).users;
+  }
+
+  return [];
+}
+
+export async function createManagerAccount(
+  accessToken: string,
+  payload: { name: string; email: string; password: string },
+): Promise<AdminManagedUser> {
+  const response = await fetch(`${API_URL}/auth/manager`, {
+    method: "POST",
+    headers: authHeaders(accessToken),
+    body: JSON.stringify(payload),
+    credentials: "include",
+  });
+
+  const data = await parseApiResponse(response);
+  const created = (data as { data?: unknown }).data;
+  return (created ?? {}) as AdminManagedUser;
+}
+
+export async function approveUserByAdmin(
+  accessToken: string,
+  userId: string,
+): Promise<void> {
+  const response = await fetch(`${API_URL}/auth/approve/${userId}`, {
+    method: "POST",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
+
+  await parseApiResponse(response);
+}
+
+export async function restrictUserByAdmin(
+  accessToken: string,
+  userId: string,
+): Promise<void> {
+  const response = await fetch(`${API_URL}/auth/${userId}/restrict`, {
+    method: "PATCH",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
+
+  await parseApiResponse(response);
+}
+
+export async function deleteUserByAdmin(
+  accessToken: string,
+  userId: string,
+): Promise<void> {
+  const response = await fetch(`${API_URL}/auth/${userId}`, {
+    method: "DELETE",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
+
+  await parseApiResponse(response);
+}
+
+export async function getManagerDetailsByAdmin(
+  accessToken: string,
+  managerId: string,
+): Promise<ManagerFullDetails> {
+  const response = await fetch(`${API_URL}/auth/manager/${managerId}/details`, {
+    method: "GET",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
+
+  const data = await parseApiResponse(response);
+  return ((data as { data?: unknown }).data ?? {}) as ManagerFullDetails;
 }
