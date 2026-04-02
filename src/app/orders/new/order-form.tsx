@@ -160,28 +160,28 @@ export function OrderForm({ products }: OrderFormProps) {
   }
 
   return (
-    <section className="card">
+    <section className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
       <h2>Create Order Draft</h2>
       <p className="card-subtitle">
         Frontend validation simulates stock conflict checks before backend
         integration.
       </p>
 
-      <label className="field">
+      <label className="flex flex-col gap-2 w-full">
         Customer Name
         <input
-          className="input"
+          className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
           value={customerName}
           onChange={(event) => setCustomerName(event.target.value)}
           placeholder="Acme Distribution"
         />
       </label>
 
-      <div className="row">
-        <label className="field">
+      <div className="flex items-center gap-3 flex-wrap">
+        <label className="flex flex-col gap-2 w-full">
           Product
           <select
-            className="input"
+            className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
             value={selectedProductId}
             onChange={(event) => setSelectedProductId(event.target.value)}
           >
@@ -193,10 +193,10 @@ export function OrderForm({ products }: OrderFormProps) {
           </select>
         </label>
 
-        <label className="field">
+        <label className="flex flex-col gap-2 w-full">
           Quantity
           <input
-            className="input"
+            className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
             type="number"
             min={1}
             value={quantity}
@@ -204,14 +204,14 @@ export function OrderForm({ products }: OrderFormProps) {
           />
         </label>
 
-        <button className="btn" type="button" onClick={addItem}>
+        <button className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50" type="button" onClick={addItem}>
           Add Item
         </button>
       </div>
 
       <div className="order-lines">
         {items.length === 0 ? (
-          <p className="empty">No items added yet.</p>
+          <p className="text-slate-500 text-center p-8 italic">No items added yet.</p>
         ) : (
           items.map((item) => {
             const product = products.find(
@@ -242,7 +242,7 @@ export function OrderForm({ products }: OrderFormProps) {
       <div className="row spread">
         <strong>Subtotal: ${subtotal.toFixed(2)}</strong>
         <button
-          className="btn primary"
+          className="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 border border-teal-700 bg-gradient-to-br from-teal-700 to-teal-800 text-white rounded-xl font-semibold text-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center focus:outline-none focus:ring-2 focus:ring-teal-700/50 focus:ring-offset-2"
           type="button"
           onClick={submitDraft}
           disabled={
@@ -253,7 +253,7 @@ export function OrderForm({ products }: OrderFormProps) {
         </button>
       </div>
 
-      {serverMessage ? <p className="server-message">{serverMessage}</p> : null}
+      {serverMessage ? <p className="mt-4 p-3 font-semibold rounded-lg bg-red-100 text-red-700 text-sm">{serverMessage}</p> : null}
       {issues.length > 0 ? (
         <ul className="issues">
           {issues.map((issue, index) => (

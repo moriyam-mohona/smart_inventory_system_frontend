@@ -31,15 +31,15 @@ export default function ActivityLogPage() {
 
   return (
     <div>
-      <div className="card" style={{ marginBottom: "2rem" }}>
+      <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm" style={{ marginBottom: "2rem" }}>
         <h2>Activity Log</h2>
         <p className="card-subtitle">
           Track recent system activities and changes
         </p>
       </div>
 
-      <div className="card">
-        <ul className="activity-log-list">
+      <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
+        <ul className="grid gap-3 list-none p-0">
           {mockActivities.map((activity) => (
             <li key={activity.id}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>

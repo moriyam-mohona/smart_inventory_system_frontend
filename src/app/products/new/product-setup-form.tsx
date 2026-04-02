@@ -108,21 +108,21 @@ export function ProductSetupForm({ categories }: ProductSetupFormProps) {
           Manual product entry flow for setup before backend integration.
         </p>
 
-        <div className="setup-form-grid">
-          <label className="field">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="flex flex-col gap-2 w-full">
             Product Name
             <input
-              className="input"
+              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
               value={draft.name}
               onChange={(event) => updateField("name", event.target.value)}
               placeholder="Noise Cancelling Headphones"
             />
           </label>
 
-          <label className="field">
+          <label className="flex flex-col gap-2 w-full">
             Category
             <select
-              className="input"
+              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
               value={draft.categoryId}
               onChange={(event) =>
                 updateField("categoryId", event.target.value)
@@ -136,10 +136,10 @@ export function ProductSetupForm({ categories }: ProductSetupFormProps) {
             </select>
           </label>
 
-          <label className="field">
+          <label className="flex flex-col gap-2 w-full">
             Price
             <input
-              className="input"
+              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
               type="number"
               min="0"
               step="0.01"
@@ -149,10 +149,10 @@ export function ProductSetupForm({ categories }: ProductSetupFormProps) {
             />
           </label>
 
-          <label className="field">
+          <label className="flex flex-col gap-2 w-full">
             Stock Quantity
             <input
-              className="input"
+              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
               type="number"
               min="0"
               step="1"
@@ -164,10 +164,10 @@ export function ProductSetupForm({ categories }: ProductSetupFormProps) {
             />
           </label>
 
-          <label className="field">
+          <label className="flex flex-col gap-2 w-full">
             Minimum Stock Threshold
             <input
-              className="input"
+              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
               type="number"
               min="0"
               step="1"
@@ -179,10 +179,10 @@ export function ProductSetupForm({ categories }: ProductSetupFormProps) {
             />
           </label>
 
-          <label className="field">
+          <label className="flex flex-col gap-2 w-full">
             Status
             <select
-              className="input"
+              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
               value={draft.status}
               onChange={(event) =>
                 updateField("status", event.target.value as ProductStatus)
@@ -195,7 +195,7 @@ export function ProductSetupForm({ categories }: ProductSetupFormProps) {
         </div>
 
         <div className="setup-actions">
-          <button className="btn primary" type="button" onClick={createProduct}>
+          <button className="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 border border-teal-700 bg-gradient-to-br from-teal-700 to-teal-800 text-white rounded-xl font-semibold text-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center focus:outline-none focus:ring-2 focus:ring-teal-700/50 focus:ring-offset-2" type="button" onClick={createProduct}>
             Add Product
           </button>
           <span className="setup-hint">
@@ -203,7 +203,7 @@ export function ProductSetupForm({ categories }: ProductSetupFormProps) {
           </span>
         </div>
 
-        {message ? <p className="server-message">{message}</p> : null}
+        {message ? <p className="mt-4 p-3 font-semibold rounded-lg bg-red-100 text-red-700 text-sm">{message}</p> : null}
       </div>
 
       <div>
@@ -211,10 +211,10 @@ export function ProductSetupForm({ categories }: ProductSetupFormProps) {
         <p className="card-subtitle">Preview list from manual setup entries.</p>
 
         {draftProducts.length === 0 ? (
-          <p className="empty">No draft products added yet.</p>
+          <p className="text-slate-500 text-center p-8 italic">No draft products added yet.</p>
         ) : (
-          <div className="table-wrap">
-            <table className="table">
+          <div className="overflow-x-auto mt-4 border border-slate-200 rounded-xl shadow-sm">
+            <table className="w-full border-collapse bg-white text-left text-sm">
               <thead>
                 <tr>
                   <th>Product Name</th>

@@ -12,15 +12,15 @@ export default async function LowStockPage() {
 
   return (
     <div>
-      <div className="card">
+      <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
         <h2>Low Stock Items</h2>
         <p className="card-subtitle">Products that need restocking soon</p>
       </div>
 
-      <div className="card" style={{ marginTop: "2rem" }}>
+      <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm" style={{ marginTop: "2rem" }}>
         {lowStockProducts.length > 0 ? (
-          <div className="table-wrap">
-            <table className="table">
+          <div className="overflow-x-auto mt-4 border border-slate-200 rounded-xl shadow-sm">
+            <table className="w-full border-collapse bg-white text-left text-sm">
               <thead>
                 <tr>
                   <th>Product Name</th>
@@ -60,7 +60,7 @@ export default async function LowStockPage() {
             </table>
           </div>
         ) : (
-          <p className="empty">All products are well stocked!</p>
+          <p className="text-slate-500 text-center p-8 italic">All products are well stocked!</p>
         )}
       </div>
     </div>

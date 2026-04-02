@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import NextTopLoader from 'nextjs-toploader';
 import "./globals.css";
+import ReduxStoreProvider from "@/redux/ReduxStoreProvider";
 
 const headingFont = Space_Grotesk({
   variable: "--font-heading",
@@ -26,10 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${headingFont.variable} ${bodyFont.variable}`}>
-      <body>
+    <html lang="en" suppressHydrationWarning className={`${headingFont.variable} ${bodyFont.variable}`}>
+      <body suppressHydrationWarning>
+        <ReduxStoreProvider>
         <NextTopLoader color="#2dd4bf" showSpinner={false} />
         {children}
+        </ReduxStoreProvider>
       </body>
     </html>
   );

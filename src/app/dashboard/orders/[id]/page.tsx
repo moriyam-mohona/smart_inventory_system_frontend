@@ -6,13 +6,13 @@ export default async function OrderDetailPage({ params }: { params: Promise<Para
   const { id } = await params;
   return (
     <div>
-      <div className="card" style={{ marginBottom: "2rem" }}>
+      <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm" style={{ marginBottom: "2rem" }}>
         <h2>Order Details</h2>
         <p className="card-subtitle">View and manage order information</p>
       </div>
 
       <div className="dashboard-grid">
-        <div className="card">
+        <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
           <h3>Order Information</h3>
           <div style={{ marginTop: "1rem" }}>
             <p>
@@ -31,7 +31,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<Para
           </div>
         </div>
 
-        <div className="card">
+        <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
           <h3>Order Summary</h3>
           <div style={{ marginTop: "1rem" }}>
             <p>
@@ -50,10 +50,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<Para
         </div>
       </div>
 
-      <div className="card" style={{ marginTop: "2rem" }}>
+      <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm" style={{ marginTop: "2rem" }}>
         <h3>Order Items</h3>
-        <div className="table-wrap">
-          <table className="table">
+        <div className="overflow-x-auto mt-4 border border-slate-200 rounded-xl shadow-sm">
+          <table className="w-full border-collapse bg-white text-left text-sm">
             <thead>
               <tr>
                 <th>Product</th>
@@ -80,11 +80,11 @@ export default async function OrderDetailPage({ params }: { params: Promise<Para
         </div>
       </div>
 
-      <div className="card" style={{ marginTop: "2rem" }}>
+      <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm" style={{ marginTop: "2rem" }}>
         <h3>Update Status</h3>
-        <label className="field">
+        <label className="flex flex-col gap-2 w-full">
           <span>Order Status</span>
-          <select className="input">
+          <select className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500">
             <option>PENDING</option>
             <option>CONFIRMED</option>
             <option>SHIPPED</option>
@@ -94,8 +94,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<Para
         </label>
 
         <div className="setup-actions" style={{ marginTop: "1.5rem" }}>
-          <button className="btn primary">Update Status</button>
-          <button className="btn">Cancel</button>
+          <button className="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 border border-teal-700 bg-gradient-to-br from-teal-700 to-teal-800 text-white rounded-xl font-semibold text-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center focus:outline-none focus:ring-2 focus:ring-teal-700/50 focus:ring-offset-2">Update Status</button>
+          <button className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50">Cancel</button>
         </div>
       </div>
     </div>

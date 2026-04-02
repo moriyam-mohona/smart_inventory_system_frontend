@@ -7,7 +7,7 @@ export default async function AnalyticsPage() {
 
   return (
     <div>
-      <div className="card" style={{ marginBottom: "2rem" }}>
+      <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm" style={{ marginBottom: "2rem" }}>
         <h2>Analytics & Reports</h2>
         <p className="card-subtitle">
           Business insights and performance metrics
@@ -45,7 +45,7 @@ export default async function AnalyticsPage() {
       </div>
 
       {/* Detailed Breakdown */}
-      <div className="card" style={{ marginTop: "2rem" }}>
+      <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm" style={{ marginTop: "2rem" }}>
         <h2>Inventory Summary</h2>
         <div className="dashboard-grid">
           <div className="card-subtle">

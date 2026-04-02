@@ -692,8 +692,8 @@ export function OrderManagement({
 
   return (
     <>
-      <section className="card">
-        <div className="row spread center wrap">
+      <section className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2>Activity Log</h2>
             <p className="card-subtitle">Latest 10 system actions.</p>
@@ -704,9 +704,9 @@ export function OrderManagement({
         </div>
 
         {activityLogs.length === 0 ? (
-          <p className="empty">No recent activity yet.</p>
+          <p className="text-slate-500 text-center p-8 italic">No recent activity yet.</p>
         ) : (
-          <ul className="activity-log-list">
+          <ul className="grid gap-3 list-none p-0">
             {activityLogs.map((entry) => (
               <li key={entry.id}>
                 <strong>{toTimeLabel(entry.timestamp)}</strong> -{" "}
@@ -717,17 +717,17 @@ export function OrderManagement({
         )}
       </section>
 
-      <section className="card">
+      <section className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
         <h2>Create New Order</h2>
         <p className="card-subtitle">
           Add customer, multiple products, quantity per product, and
           auto-calculate total price.
         </p>
 
-        <label className="field">
+        <label className="flex flex-col gap-2 w-full">
           Customer Name
           <input
-            className="input"
+            className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
             value={draft.customerName}
             onChange={(event) =>
               setDraft((current) => ({
@@ -739,11 +739,11 @@ export function OrderManagement({
           />
         </label>
 
-        <div className="row">
-          <label className="field">
+        <div className="flex items-center gap-3 flex-wrap">
+          <label className="flex flex-col gap-2 w-full">
             Product
             <select
-              className="input"
+              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
               value={draft.selectedProductId}
               onChange={(event) =>
                 setDraft((current) => ({
@@ -766,10 +766,10 @@ export function OrderManagement({
             </select>
           </label>
 
-          <label className="field">
+          <label className="flex flex-col gap-2 w-full">
             Quantity
             <input
-              className="input"
+              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
               type="number"
               min={1}
               step={1}
@@ -783,14 +783,14 @@ export function OrderManagement({
             />
           </label>
 
-          <button className="btn" type="button" onClick={addDraftItem}>
+          <button className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50" type="button" onClick={addDraftItem}>
             Add Item
           </button>
         </div>
 
         <div className="order-lines">
           {draft.items.length === 0 ? (
-            <p className="empty">No products selected yet.</p>
+            <p className="text-slate-500 text-center p-8 italic">No products selected yet.</p>
           ) : (
             draft.items.map((item) => {
               const product = inventoryProducts.find(
@@ -821,14 +821,14 @@ export function OrderManagement({
 
         <div className="row spread center">
           <strong>Total Price: ${draftTotal.toFixed(2)}</strong>
-          <button className="btn primary" type="button" onClick={createOrder}>
+          <button className="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 border border-teal-700 bg-gradient-to-br from-teal-700 to-teal-800 text-white rounded-xl font-semibold text-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center focus:outline-none focus:ring-2 focus:ring-teal-700/50 focus:ring-offset-2" type="button" onClick={createOrder}>
             Create Order
           </button>
         </div>
       </section>
 
-      <section className="card">
-        <div className="row spread center wrap">
+      <section className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2>Restock Queue</h2>
             <p className="card-subtitle">
@@ -841,8 +841,8 @@ export function OrderManagement({
           </span>
         </div>
 
-        <div className="table-wrap">
-          <table className="table">
+        <div className="overflow-x-auto mt-4 border border-slate-200 rounded-xl shadow-sm">
+          <table className="w-full border-collapse bg-white text-left text-sm">
             <thead>
               <tr>
                 <th>Product</th>
@@ -867,7 +867,7 @@ export function OrderManagement({
                   <td>
                     <div className="orders-actions">
                       <input
-                        className="input"
+                        className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                         type="number"
                         min={1}
                         step={1}
@@ -881,7 +881,7 @@ export function OrderManagement({
                         placeholder="Qty"
                       />
                       <button
-                        className="btn"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
                         type="button"
                         onClick={() => restockProduct(entry.productId)}
                       >
@@ -891,7 +891,7 @@ export function OrderManagement({
                   </td>
                   <td>
                     <button
-                      className="btn"
+                      className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
                       type="button"
                       onClick={() => removeFromQueue(entry.productId)}
                       disabled={
@@ -907,7 +907,7 @@ export function OrderManagement({
               {openRestockQueue.length === 0 ? (
                 <tr>
                   <td colSpan={6}>
-                    <p className="empty">No open restock queue items.</p>
+                    <p className="text-slate-500 text-center p-8 italic">No open restock queue items.</p>
                   </td>
                 </tr>
               ) : null}
@@ -916,8 +916,8 @@ export function OrderManagement({
         </div>
       </section>
 
-      <section className="card">
-        <div className="row spread center wrap">
+      <section className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2>View and Manage Orders</h2>
             <p className="card-subtitle">
@@ -929,7 +929,7 @@ export function OrderManagement({
             <label className="field compact-field">
               Search
               <input
-                className="input"
+                className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                 value={orderSearch}
                 onChange={(event) => {
                   setOrderSearch(event.target.value);
@@ -942,7 +942,7 @@ export function OrderManagement({
             <label className="field compact-field">
               Status
               <select
-                className="input"
+                className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                 value={statusFilter}
                 onChange={(event) => {
                   setStatusFilter(event.target.value as "ALL" | OrderStatus);
@@ -961,7 +961,7 @@ export function OrderManagement({
             <label className="field compact-field">
               Date
               <input
-                className="input"
+                className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                 type="date"
                 value={dateFilter}
                 onChange={(event) => {
@@ -996,10 +996,10 @@ export function OrderManagement({
           </div>
         </div>
 
-        {message ? <p className="server-message">{message}</p> : null}
+        {message ? <p className="mt-4 p-3 font-semibold rounded-lg bg-red-100 text-red-700 text-sm">{message}</p> : null}
 
-        <div className="table-wrap">
-          <table className="table">
+        <div className="overflow-x-auto mt-4 border border-slate-200 rounded-xl shadow-sm">
+          <table className="w-full border-collapse bg-white text-left text-sm">
             <thead>
               <tr>
                 <th>Order</th>
@@ -1041,7 +1041,7 @@ export function OrderManagement({
                   <td>
                     <div className="orders-actions">
                       <select
-                        className="input"
+                        className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                         value={statusDrafts[order.id] ?? order.status}
                         onChange={(event) =>
                           setStatusDrafts((current) => ({
@@ -1058,7 +1058,7 @@ export function OrderManagement({
                       </select>
 
                       <button
-                        className="btn"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
                         type="button"
                         onClick={() => applyStatus(order.id)}
                       >
@@ -1066,7 +1066,7 @@ export function OrderManagement({
                       </button>
 
                       <button
-                        className="btn"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
                         type="button"
                         onClick={() => cancelOrder(order.id)}
                         disabled={
@@ -1083,7 +1083,7 @@ export function OrderManagement({
               {paginatedOrders.length === 0 ? (
                 <tr>
                   <td colSpan={7}>
-                    <p className="empty">
+                    <p className="text-slate-500 text-center p-8 italic">
                       No orders match the selected filters.
                     </p>
                   </td>
@@ -1094,27 +1094,27 @@ export function OrderManagement({
         </div>
 
         <div className="row spread center pagination-row">
-          <p className="empty">
+          <p className="text-slate-500 text-center p-8 italic">
             Showing{" "}
             {(activeOrderPage - 1) * orderPageSize +
               (paginatedOrders.length ? 1 : 0)}
             -{(activeOrderPage - 1) * orderPageSize + paginatedOrders.length} of{" "}
             {filteredOrders.length}
           </p>
-          <div className="row">
+          <div className="flex items-center gap-3 flex-wrap">
             <button
-              className="btn"
+              className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
               type="button"
               disabled={activeOrderPage <= 1}
               onClick={() => setOrderPage((prev) => Math.max(1, prev - 1))}
             >
               Previous
             </button>
-            <span className="pill">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold capitalize bg-slate-100">
               Page {activeOrderPage} / {orderTotalPages}
             </span>
             <button
-              className="btn"
+              className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
               type="button"
               disabled={activeOrderPage >= orderTotalPages}
               onClick={() =>

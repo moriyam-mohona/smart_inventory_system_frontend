@@ -55,10 +55,10 @@ export function CategorySetup({ initialCategories }: CategorySetupProps) {
           Add product categories like Electronics, Grocery, and Clothing.
         </p>
 
-        <label className="field">
+        <label className="flex flex-col gap-2 w-full">
           Category Name
           <input
-            className="input"
+            className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Electronics"
@@ -67,7 +67,7 @@ export function CategorySetup({ initialCategories }: CategorySetupProps) {
 
         <div className="setup-actions">
           <button
-            className="btn primary"
+            className="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 border border-teal-700 bg-gradient-to-br from-teal-700 to-teal-800 text-white rounded-xl font-semibold text-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center focus:outline-none focus:ring-2 focus:ring-teal-700/50 focus:ring-offset-2"
             type="button"
             onClick={createCategory}
             disabled={name.trim().length < 2}
@@ -76,7 +76,7 @@ export function CategorySetup({ initialCategories }: CategorySetupProps) {
           </button>
         </div>
 
-        {message ? <p className="server-message">{message}</p> : null}
+        {message ? <p className="mt-4 p-3 font-semibold rounded-lg bg-red-100 text-red-700 text-sm">{message}</p> : null}
       </div>
 
       <div>
@@ -85,8 +85,8 @@ export function CategorySetup({ initialCategories }: CategorySetupProps) {
           Local preview before backend integration.
         </p>
 
-        <div className="table-wrap">
-          <table className="table">
+        <div className="overflow-x-auto mt-4 border border-slate-200 rounded-xl shadow-sm">
+          <table className="w-full border-collapse bg-white text-left text-sm">
             <thead>
               <tr>
                 <th>Name</th>

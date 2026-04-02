@@ -18,19 +18,19 @@ export default function UsersPage() {
 
   return (
     <div>
-      <div className="card">
-        <div className="row spread center wrap">
+      <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2>User Management</h2>
             <p className="card-subtitle">Manage system users and their roles</p>
           </div>
-          <button className="btn primary">Add User</button>
+          <button className="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 border border-teal-700 bg-gradient-to-br from-teal-700 to-teal-800 text-white rounded-xl font-semibold text-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center focus:outline-none focus:ring-2 focus:ring-teal-700/50 focus:ring-offset-2">Add User</button>
         </div>
       </div>
 
-      <div className="card" style={{ marginTop: "2rem" }}>
-        <div className="table-wrap">
-          <table className="table">
+      <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm" style={{ marginTop: "2rem" }}>
+        <div className="overflow-x-auto mt-4 border border-slate-200 rounded-xl shadow-sm">
+          <table className="w-full border-collapse bg-white text-left text-sm">
             <thead>
               <tr>
                 <th>Name</th>
@@ -46,7 +46,7 @@ export default function UsersPage() {
                   <td>{user.name}</td>
                   <td>{user.email}</td>
                   <td>
-                    <span className="pill">{user.role}</span>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold capitalize bg-slate-100">{user.role}</span>
                   </td>
                   <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td>
