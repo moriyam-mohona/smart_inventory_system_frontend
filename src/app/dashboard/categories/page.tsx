@@ -7,15 +7,15 @@ export default async function CategoriesPage() {
   const categories = await getCategories();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+    <div>
       {/* Header Section */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-600/30">
                 <svg
-                  className="w-5 h-5 text-white"
+                  className="w-6 h-6 text-white"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -23,19 +23,16 @@ export default async function CategoriesPage() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                   Product Categories
                 </h1>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-600 mt-1">
                   Manage and organize your inventory categories
                 </p>
               </div>
             </div>
           </div>
-          <Link
-            href="/dashboard/categories/new"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-teal-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-teal-600/50 focus:ring-offset-2 active:scale-95"
-          >
+          <Link href="/dashboard/categories/new" className="btn-primary">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
@@ -54,16 +51,16 @@ export default async function CategoriesPage() {
           {categories.map(
             (cat: { id: string; name: string; createdAt: string }) => (
               <Link key={cat.id} href={`/dashboard/categories/${cat.id}`}>
-                <div className="group bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-teal-300 transition-all cursor-pointer overflow-hidden relative">
+                <div className="card card-hover p-5 group overflow-hidden relative">
                   {/* Background accent */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-teal-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
                   <div className="relative flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       {/* Category Icon */}
-                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-teal-100 to-teal-50 flex items-center justify-center group-hover:from-teal-200 group-hover:to-teal-100 transition-colors">
+                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center group-hover:from-primary-200 group-hover:to-primary-100 transition-colors shadow-sm">
                         <svg
-                          className="w-6 h-6 text-teal-600"
+                          className="w-6 h-6 text-primary-600"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -72,7 +69,7 @@ export default async function CategoriesPage() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-900 text-sm mb-1 truncate group-hover:text-teal-600 transition-colors">
+                        <h3 className="font-semibold text-slate-900 text-sm mb-1 truncate group-hover:text-primary-600 transition-colors">
                           {cat.name}
                         </h3>
                         <p className="text-xs text-slate-500">
@@ -88,9 +85,9 @@ export default async function CategoriesPage() {
 
                     {/* Action Arrow */}
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-teal-100 flex items-center justify-center transition-colors">
+                      <div className="w-9 h-9 rounded-lg bg-slate-100 group-hover:bg-primary-100 flex items-center justify-center transition-colors shadow-sm">
                         <svg
-                          className="w-4 h-4 text-slate-600 group-hover:text-teal-600 group-hover:translate-x-0.5 transition-all"
+                          className="w-4 h-4 text-slate-600 group-hover:text-primary-600 group-hover:translate-x-0.5 transition-all"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -111,7 +108,7 @@ export default async function CategoriesPage() {
           )}
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
+        <div className="card p-12 text-center">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
               <svg
@@ -136,10 +133,7 @@ export default async function CategoriesPage() {
             Get started by creating your first product category to organize your
             inventory.
           </p>
-          <Link
-            href="/dashboard/categories/new"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-teal-600/30 transition-all"
-          >
+          <Link href="/dashboard/categories/new" className="btn-primary">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"

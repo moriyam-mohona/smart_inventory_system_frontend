@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Manrope, Space_Grotesk } from "next/font/google";
-import NextTopLoader from 'nextjs-toploader';
+import NextTopLoader from "nextjs-toploader";
+import "antd/dist/reset.css";
 import "./globals.css";
 import ReduxStoreProvider from "@/redux/ReduxStoreProvider";
 
@@ -27,11 +28,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${headingFont.variable} ${bodyFont.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${headingFont.variable} ${bodyFont.variable}`}
+    >
       <body suppressHydrationWarning>
         <ReduxStoreProvider>
-        <NextTopLoader color="#2dd4bf" showSpinner={false} />
-        {children}
+          <NextTopLoader color="#4f46e5" showSpinner={false} />
+          {children}
         </ReduxStoreProvider>
       </body>
     </html>

@@ -704,7 +704,9 @@ export function OrderManagement({
         </div>
 
         {activityLogs.length === 0 ? (
-          <p className="text-slate-500 text-center p-8 italic">No recent activity yet.</p>
+          <p className="text-slate-500 text-center p-8 italic">
+            No recent activity yet.
+          </p>
         ) : (
           <ul className="grid gap-3 list-none p-0">
             {activityLogs.map((entry) => (
@@ -727,7 +729,7 @@ export function OrderManagement({
         <label className="flex flex-col gap-2 w-full">
           Customer Name
           <input
-            className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+            className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
             value={draft.customerName}
             onChange={(event) =>
               setDraft((current) => ({
@@ -743,7 +745,7 @@ export function OrderManagement({
           <label className="flex flex-col gap-2 w-full">
             Product
             <select
-              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
               value={draft.selectedProductId}
               onChange={(event) =>
                 setDraft((current) => ({
@@ -769,7 +771,7 @@ export function OrderManagement({
           <label className="flex flex-col gap-2 w-full">
             Quantity
             <input
-              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
               type="number"
               min={1}
               step={1}
@@ -783,14 +785,20 @@ export function OrderManagement({
             />
           </label>
 
-          <button className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50" type="button" onClick={addDraftItem}>
+          <button
+            className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-primary-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-700/50"
+            type="button"
+            onClick={addDraftItem}
+          >
             Add Item
           </button>
         </div>
 
         <div className="order-lines">
           {draft.items.length === 0 ? (
-            <p className="text-slate-500 text-center p-8 italic">No products selected yet.</p>
+            <p className="text-slate-500 text-center p-8 italic">
+              No products selected yet.
+            </p>
           ) : (
             draft.items.map((item) => {
               const product = inventoryProducts.find(
@@ -821,7 +829,7 @@ export function OrderManagement({
 
         <div className="row spread center">
           <strong>Total Price: ${draftTotal.toFixed(2)}</strong>
-          <button className="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 border border-teal-700 bg-gradient-to-br from-teal-700 to-teal-800 text-white rounded-xl font-semibold text-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center focus:outline-none focus:ring-2 focus:ring-teal-700/50 focus:ring-offset-2" type="button" onClick={createOrder}>
+          <button className="btn-primary" type="button" onClick={createOrder}>
             Create Order
           </button>
         </div>
@@ -867,7 +875,7 @@ export function OrderManagement({
                   <td>
                     <div className="orders-actions">
                       <input
-                        className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+                        className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                         type="number"
                         min={1}
                         step={1}
@@ -881,7 +889,7 @@ export function OrderManagement({
                         placeholder="Qty"
                       />
                       <button
-                        className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-primary-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-700/50"
                         type="button"
                         onClick={() => restockProduct(entry.productId)}
                       >
@@ -891,7 +899,7 @@ export function OrderManagement({
                   </td>
                   <td>
                     <button
-                      className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
+                      className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-primary-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-700/50"
                       type="button"
                       onClick={() => removeFromQueue(entry.productId)}
                       disabled={
@@ -907,7 +915,9 @@ export function OrderManagement({
               {openRestockQueue.length === 0 ? (
                 <tr>
                   <td colSpan={6}>
-                    <p className="text-slate-500 text-center p-8 italic">No open restock queue items.</p>
+                    <p className="text-slate-500 text-center p-8 italic">
+                      No open restock queue items.
+                    </p>
                   </td>
                 </tr>
               ) : null}
@@ -929,7 +939,7 @@ export function OrderManagement({
             <label className="field compact-field">
               Search
               <input
-                className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+                className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                 value={orderSearch}
                 onChange={(event) => {
                   setOrderSearch(event.target.value);
@@ -942,7 +952,7 @@ export function OrderManagement({
             <label className="field compact-field">
               Status
               <select
-                className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+                className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                 value={statusFilter}
                 onChange={(event) => {
                   setStatusFilter(event.target.value as "ALL" | OrderStatus);
@@ -961,7 +971,7 @@ export function OrderManagement({
             <label className="field compact-field">
               Date
               <input
-                className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+                className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                 type="date"
                 value={dateFilter}
                 onChange={(event) => {
@@ -996,7 +1006,11 @@ export function OrderManagement({
           </div>
         </div>
 
-        {message ? <p className="mt-4 p-3 font-semibold rounded-lg bg-red-100 text-red-700 text-sm">{message}</p> : null}
+        {message ? (
+          <p className="mt-4 p-3 font-semibold rounded-lg bg-red-100 text-red-700 text-sm">
+            {message}
+          </p>
+        ) : null}
 
         <div className="overflow-x-auto mt-4 border border-slate-200 rounded-xl shadow-sm">
           <table className="w-full border-collapse bg-white text-left text-sm">
@@ -1041,7 +1055,7 @@ export function OrderManagement({
                   <td>
                     <div className="orders-actions">
                       <select
-                        className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+                        className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                         value={statusDrafts[order.id] ?? order.status}
                         onChange={(event) =>
                           setStatusDrafts((current) => ({
@@ -1058,7 +1072,7 @@ export function OrderManagement({
                       </select>
 
                       <button
-                        className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-primary-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-700/50"
                         type="button"
                         onClick={() => applyStatus(order.id)}
                       >
@@ -1066,7 +1080,7 @@ export function OrderManagement({
                       </button>
 
                       <button
-                        className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-primary-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-700/50"
                         type="button"
                         onClick={() => cancelOrder(order.id)}
                         disabled={
@@ -1103,7 +1117,7 @@ export function OrderManagement({
           </p>
           <div className="flex items-center gap-3 flex-wrap">
             <button
-              className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
+              className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-primary-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-700/50"
               type="button"
               disabled={activeOrderPage <= 1}
               onClick={() => setOrderPage((prev) => Math.max(1, prev - 1))}
@@ -1114,7 +1128,7 @@ export function OrderManagement({
               Page {activeOrderPage} / {orderTotalPages}
             </span>
             <button
-              className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
+              className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-primary-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-700/50"
               type="button"
               disabled={activeOrderPage >= orderTotalPages}
               onClick={() =>

@@ -53,17 +53,19 @@ export async function loginWithEmail(
       };
     }
 
+    // console.log(data);
+
     return {
       ok: true,
       message: "Welcome back. Redirecting to dashboard...",
       session: {
-        id: data.user?.id || data.userId,
-        name: data.user?.name || data.name,
-        email: data.user?.email || email,
-        role: data.user?.role || data.role,
+        id: data?.data?.user?.id,
+        name: data?.data?.user?.name,
+        email: data?.data?.user?.email,
+        role: data?.data?.user?.role,
       },
-      accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
+      accessToken: data?.data?.accessToken,
+      refreshToken: data?.data?.refreshToken,
     };
   } catch (error) {
     console.error("Login error:", error);

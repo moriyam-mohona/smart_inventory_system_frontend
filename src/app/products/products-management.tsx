@@ -86,7 +86,7 @@ export function ProductsManagement({ products }: ProductsManagementProps) {
         <label className="field compact-field">
           Search
           <input
-            className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+            className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -99,7 +99,7 @@ export function ProductsManagement({ products }: ProductsManagementProps) {
         <label className="field compact-field">
           Stock Filter
           <select
-            className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+            className="w-full border border-slate-200 rounded-xl bg-white px-4 py-2.5 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all disabled:bg-slate-50 disabled:text-slate-500"
             value={filter}
             onChange={(event) => {
               setFilter(event.target.value as StockFilter);
@@ -149,7 +149,9 @@ export function ProductsManagement({ products }: ProductsManagementProps) {
             {paginated.length === 0 ? (
               <tr>
                 <td colSpan={7}>
-                  <p className="text-slate-500 text-center p-8 italic">No products match your filters.</p>
+                  <p className="text-slate-500 text-center p-8 italic">
+                    No products match your filters.
+                  </p>
                 </td>
               </tr>
             ) : null}
@@ -164,7 +166,7 @@ export function ProductsManagement({ products }: ProductsManagementProps) {
         </p>
         <div className="flex items-center gap-3 flex-wrap">
           <button
-            className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
+            className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-primary-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-700/50"
             type="button"
             disabled={currentPage <= 1}
             onClick={() => setPage((prev) => Math.max(1, prev - 1))}
@@ -175,7 +177,7 @@ export function ProductsManagement({ products }: ProductsManagementProps) {
             Page {currentPage} / {totalPages}
           </span>
           <button
-            className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-teal-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-700/50"
+            className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 bg-slate-100 text-slate-900 rounded-xl font-semibold text-sm hover:bg-white hover:border-primary-700 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-700/50"
             type="button"
             disabled={currentPage >= totalPages}
             onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
