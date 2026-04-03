@@ -120,6 +120,9 @@ export const apiTags = [
   "scholarship",
   "contact",
   "event",
+  "order",
+  "product",
+  "category"
 ] as const;
 
 export type ApiTagTypes = (typeof apiTags)[number];

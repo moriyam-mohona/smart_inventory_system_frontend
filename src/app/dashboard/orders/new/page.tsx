@@ -1,12 +1,9 @@
-import { getProducts } from "@/lib/inventory-service";
 import { FormModalShell } from "@/components/form-modal-shell";
 import { OrderFormComponent } from "./order-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewOrderPage() {
-  const products = await getProducts();
-
+export default function NewOrderPage() {
   return (
     <FormModalShell closeHref="/dashboard/orders">
       <div className="space-y-8">
@@ -21,7 +18,7 @@ export default async function NewOrderPage() {
         </div>
 
         <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm">
-          <OrderFormComponent products={products} />
+          <OrderFormComponent />
         </div>
       </div>
     </FormModalShell>

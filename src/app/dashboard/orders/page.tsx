@@ -1,11 +1,16 @@
+"use client";
+
 import Link from "next/link";
-import { getOrders } from "@/lib/inventory-service";
 import { RoleVisibility } from "@/components/role-visibility";
+import { useGetAllOrdersQuery } from "@/redux/features/order/orderApi";
 
-export const dynamic = "force-dynamic";
-
-export default async function OrdersPage() {
-  const orders = await getOrders();
+export default function OrdersPage() {
+  const { data, isLoading, error } = useGetAllOrdersQuery({});
+  
+  // Notice that standard backend response wrappers usually have data.data 
+  // with an array of items, or data itself might be the response.
+  // We'll extract orders directly based on typical structure.
+  const orders = data?.data || data?.items || data || [];
 
   const statusConfig: Record<
     string,
@@ -61,11 +66,20 @@ export default async function OrdersPage() {
       </div>
 
       {/* Content Section */}
-      {orders.length > 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center p-12">
+          <div className="w-8 h-8 border-4 border-amber-600/20 border-t-amber-600 rounded-full animate-spin"></div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200">
+          Failed to load orders. Please try again.
+        </div>
+      ) : Array.isArray(orders) && orders.length > 0 ? (
         <div className="grid gap-4">
           {orders.map(
             (order: {
-              id: string;
+              _id?: string;
+              id?: string;
               customerName?: string;
               items?: unknown[];
               totalPrice?: number;
@@ -73,8 +87,9 @@ export default async function OrdersPage() {
               createdAt: string;
             }) => {
               const config = statusConfig[order.status] || statusConfig.PENDING;
+              const orderId = order.id || order._id || "NEW";
               return (
-                <Link key={order.id} href={`/dashboard/orders/${order.id}`}>
+                <Link key={orderId} href={`/dashboard/orders/${orderId}`}>
                   <div className="group bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-amber-300 transition-all cursor-pointer overflow-hidden relative">
                     {/* Background accent */}
                     <div className="absolute inset-0 bg-gradient-to-r from-amber-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -95,7 +110,7 @@ export default async function OrdersPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-semibold text-slate-900 text-sm truncate group-hover:text-amber-600 transition-colors">
-                              Order #{order.id.slice(-6).toUpperCase()}
+                              Order #{orderId.slice(-6).toUpperCase()}
                             </h3>
                           </div>
                           <div className="flex items-center gap-3 text-xs text-slate-500">
@@ -131,14 +146,14 @@ export default async function OrdersPage() {
                                   clipRule="evenodd"
                                 />
                               </svg>
-                              {new Date(order.createdAt).toLocaleDateString(
+                              {order.createdAt ? new Date(order.createdAt).toLocaleDateString(
                                 "en-US",
                                 {
                                   month: "short",
                                   day: "numeric",
                                   year: "numeric",
-                                },
-                              )}
+                                }
+                              ) : "N/A"}
                             </span>
                           </div>
                         </div>
@@ -176,7 +191,7 @@ export default async function OrdersPage() {
                   </div>
                 </Link>
               );
-            },
+            }
           )}
         </div>
       ) : (
