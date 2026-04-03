@@ -15,6 +15,7 @@ export const navigationByRole: Record<
     { label: "Categories", href: "/dashboard/categories", icon: "📂" },
     { label: "Products", href: "/dashboard/products", icon: "📦" },
     { label: "Orders", href: "/dashboard/orders", icon: "📋" },
+    { label: "Restock Queue", href: "/dashboard/low-stock", icon: "⚠️" },
     { label: "Users", href: "/dashboard/users", icon: "👥" },
     { label: "Activity Log", href: "/dashboard/activity", icon: "📜" },
     { label: "Analytics", href: "/dashboard/analytics", icon: "📈" },
@@ -35,7 +36,6 @@ const adminOnlyPrefixes = [
 ];
 
 const managerOnlyPrefixes = [
-  "/dashboard/low-stock",
   "/dashboard/orders/new",
 ];
 

@@ -7,11 +7,11 @@ import { message } from "antd";
 
 import { FormModalShell } from "@/components/form-modal-shell";
 import {
-  createProductByManager,
   getCategoriesByManager,
   type ManagerCategory,
 } from "@/lib/auth-service";
 import { useAppSelector } from "@/redux/hooks";
+import { useCreateProductMutation } from "@/redux/features/product/productApi";
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -61,6 +61,8 @@ export default function NewProductPage() {
     void loadCategories();
   }, [loadCategories]);
 
+  const [createProduct] = useCreateProductMutation();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -76,17 +78,18 @@ export default function NewProductPage() {
     try {
       if (!accessToken) throw new Error("Missing auth token. Please login again.");
 
-      await createProductByManager(accessToken, {
+      await createProduct({
         name: formData.name.trim(),
         categoryId: formData.categoryId,
         price: Number(formData.price),
         stockQuantity: Number(formData.stockQuantity),
         minStockThreshold: Number(formData.minStockThreshold),
-      });
+      }).unwrap();
+      
       messageApi.success("Product created.");
       router.push("/dashboard/products");
-    } catch (err) {
-      const text = err instanceof Error ? err.message : "Failed to create product.";
+    } catch (err: any) {
+      const text = err?.data?.message || err.message || "Failed to create product.";
       setError(text);
     } finally {
       setIsLoading(false);

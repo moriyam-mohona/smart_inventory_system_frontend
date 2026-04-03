@@ -15,6 +15,7 @@ import {
   type ManagerProduct,
 } from "@/lib/auth-service";
 import { useAppSelector } from "@/redux/hooks";
+import { useUpdateProductMutation } from "@/redux/features/product/productApi";
 
 export default function ProductDetailPage() {
   const router = useRouter();
@@ -91,6 +92,8 @@ export default function ProductDetailPage() {
     void loadData();
   }, [loadData]);
 
+  const [updateProduct] = useUpdateProductMutation();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (userRole === "ADMIN") return; // Admins use restrict instead of operational updates
@@ -108,18 +111,21 @@ export default function ProductDetailPage() {
     try {
       if (!accessToken) throw new Error("Missing auth token. Please login again.");
 
-      await updateProductByManager(accessToken, productId, {
-        name: formData.name.trim(),
-        categoryId: formData.categoryId,
-        price: Number(formData.price),
-        stockQuantity: Number(formData.stockQuantity),
-        minStockThreshold: Number(formData.minStockThreshold),
-      });
+      await updateProduct({
+        productId,
+        data: {
+          name: formData.name.trim(),
+          categoryId: formData.categoryId,
+          price: Number(formData.price),
+          stockQuantity: Number(formData.stockQuantity),
+          minStockThreshold: Number(formData.minStockThreshold),
+        }
+      }).unwrap();
 
       messageApi.success("Product updated successfully.");
       router.push("/dashboard/products");
-    } catch (err) {
-      const text = err instanceof Error ? err.message : "Failed to update product.";
+    } catch (err: any) {
+      const text = err?.data?.message || err.message || "Failed to update product.";
       setError(text);
     } finally {
       setIsLoading(false);
@@ -137,7 +143,9 @@ export default function ProductDetailPage() {
         if (!accessToken || !productId) return;
         setIsLoading(true);
         try {
-          await deactivateProductByAdmin(accessToken, productId);
+          // You could use a specific endpoint, but PATCHing isActive often works. If not, use backend fallback or standard react fetch.
+          // Since we want RTK invalidations, let's use the mutation with isActive: false
+          await updateProduct({ productId, data: { isActive: false, status: "INACTIVE" } }).unwrap();
           messageApi.success("Product restricted.");
           if (productData) {
             setProductData({ ...productData, isActive: false });
