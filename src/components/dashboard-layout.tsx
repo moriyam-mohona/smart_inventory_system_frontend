@@ -16,19 +16,29 @@ export function DashboardLayout({
   userRole,
 }: DashboardLayoutProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] min-h-screen bg-[radial-gradient(circle_at_top,_rgba(79,70,229,0.08),_transparent_35%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)]">
-      <DashboardSidebar userRole={userRole} userName={userName} />
+    <div className="w-full min-h-screen p-2 sm:p-4 lg:p-6 flex items-center justify-center relative z-0">
+      {/* Floating Glass Container */}
+      <div className="w-full max-w-[1600px] h-[calc(100vh-1rem)] sm:h-[calc(100vh-2rem)] lg:h-[calc(100vh-3rem)] card-glass bg-white/70 backdrop-blur-2xl border-white/80 shadow-2xl flex flex-col md:flex-row overflow-hidden rounded-[24px] lg:rounded-[32px]">
+        
+        {/* Sidebar wrapper */}
+        <div className="hidden md:flex flex-col w-[280px] shrink-0 border-r border-slate-200/50 bg-white/30 backdrop-blur-md">
+          <DashboardSidebar userRole={userRole} userName={userName} />
+        </div>
 
-      <div className="flex flex-col min-h-screen overflow-hidden">
-        <DashboardTopbar
-          pageTitle={pageTitle}
-          userName={userName}
-          userRole={userRole}
-        />
+        {/* Main Content Area */}
+        <div className="flex flex-col flex-1 min-w-0 h-full relative z-10 bg-gradient-to-br from-white/40 to-transparent">
+          <DashboardTopbar
+            pageTitle={pageTitle}
+            userName={userName}
+            userRole={userRole}
+          />
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className=" mx-auto w-full">{children}</div>
-        </main>
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+            <div className="mx-auto w-full max-w-7xl relative z-10 fade-in">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

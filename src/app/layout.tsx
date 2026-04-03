@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Manrope, Space_Grotesk } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import "antd/dist/reset.css";
 import "./globals.css";
 import ReduxStoreProvider from "@/redux/ReduxStoreProvider";
 
-const headingFont = Space_Grotesk({
+const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-heading",
   subsets: ["latin"],
 });
 
-const bodyFont = Manrope({
+const inter = Inter({
   variable: "--font-body",
   subsets: ["latin"],
 });
@@ -19,7 +18,7 @@ const bodyFont = Manrope({
 export const metadata: Metadata = {
   title: "Smart Inventory & Order Management",
   description:
-    "Frontend for managing products, stock, orders, and fulfillment workflows with validation and conflict handling.",
+    "A modern, glassmorphic SaaS platform for managing products, stock, orders, and fulfillment workflows.",
 };
 
 export default function RootLayout({
@@ -31,11 +30,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${headingFont.variable} ${bodyFont.variable}`}
+      className={`${plusJakartaSans.variable} ${inter.variable}`}
     >
       <body suppressHydrationWarning>
+        <div className="mesh-bg"></div>
         <ReduxStoreProvider>
-          <NextTopLoader color="#4f46e5" showSpinner={false} />
+          <NextTopLoader color="#1B475D" showSpinner={false} />
           {children}
         </ReduxStoreProvider>
       </body>

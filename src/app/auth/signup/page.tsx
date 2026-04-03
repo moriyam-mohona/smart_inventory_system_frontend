@@ -63,165 +63,163 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="w-full max-w-md mx-auto py-12 flex flex-col justify-center min-h-[calc(100vh-100px)] px-4">
-      <section className="border border-slate-200 rounded-3xl bg-white/70 backdrop-blur-xl shadow-xl p-8 flex flex-col gap-6 relative overflow-hidden">
-        {/* Decorative background glow */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl -z-10"></div>
-
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-primary-700 text-white flex items-center justify-center mb-2 shadow-lg shadow-primary-600/30">
-          <svg
-            className="w-6 h-6"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
-          </svg>
-        </div>
-
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            Create Account
+    <main className="w-full min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative">
+      <div className="w-full max-w-[460px] z-10 flex flex-col items-center">
+        {/* Logo / Header */}
+        <div className="flex flex-col items-center mb-10 w-full text-center">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-900 to-primary-700 text-white flex items-center justify-center mb-6 shadow-lg shadow-primary-900/30 border border-white/20 backdrop-blur-sm">
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+          </div>
+          <h1 className="text-[32px] font-extrabold text-slate-900 tracking-tight mb-2">
+            Create an account
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Join your smart inventory system
+          <p className="text-slate-600 font-medium text-[16px]">
+            Join the smart inventory platform.
           </p>
         </div>
 
-        {message && (
-          <div className="p-3 rounded-xl text-sm font-semibold bg-red-50 text-red-700 border border-red-200">
-            {message}
-          </div>
-        )}
-
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-900">
-              Full Name
-            </label>
-            <input
-              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-3 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all text-slate-900"
-              value={name}
-              onChange={(event) => {
-                setName(event.target.value);
-                setFieldErrors((prev) => ({ ...prev, name: undefined }));
-              }}
-              placeholder="John Doe"
-            />
-            {fieldErrors.name ? (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.name}</p>
-            ) : null}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-900">
-              Email Address
-            </label>
-            <input
-              className="w-full border border-slate-200 rounded-xl bg-white px-4 py-3 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all text-slate-900"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => {
-                setEmail(event.target.value);
-                setFieldErrors((prev) => ({ ...prev, email: undefined }));
-              }}
-              placeholder="you@company.com"
-            />
-            {fieldErrors.email ? (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>
-            ) : null}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-900">
-              Password
-            </label>
-            <div className="relative">
-              <input
-                className="w-full border border-slate-200 rounded-xl bg-white px-4 py-3 pr-12 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all text-slate-900"
-                type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
-                value={password}
-                onChange={(event) => {
-                  setPassword(event.target.value);
-                  setFieldErrors((prev) => ({ ...prev, password: undefined }));
-                }}
-                placeholder="At least 8 characters"
-              />
-              <button
-                type="button"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-800"
-              >
-                {showPassword ? (
-                  <svg
-                    className="h-5 w-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M3 3l18 18" />
-                    <path d="M10.58 10.58a2 2 0 1 0 2.83 2.83" />
-                    <path d="M9.88 5.09A10.94 10.94 0 0 1 12 5c5 0 9.27 3.11 11 7-0.52 1.18-1.27 2.26-2.22 3.18" />
-                    <path d="M6.61 6.61C4.62 7.86 3.12 9.75 2 12c1.73 3.89 6 7 10 7 1.63 0 3.18-0.33 4.59-0.91" />
-                  </svg>
+        <section className="card-glass p-8 sm:p-10 w-full mb-8">
+          {message && (
+            <div
+              className={`p-4 rounded-xl text-[14px] font-bold mb-6 flex items-center gap-3 border backdrop-blur-md ${
+                message.includes("success") || message.includes("Sent")
+                  ? "bg-emerald-500/10 text-emerald-800 border-emerald-500/30"
+                  : "bg-red-500/10 text-red-800 border-red-500/30"
+              }`}
+            >
+              <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                {message.includes("success") || message.includes("Sent") ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 ) : (
-                  <svg
-                    className="h-5 w-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 )}
+              </svg>
+              {message}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-6 relative z-10">
+            <div className="flex flex-col gap-2">
+              <label className="text-[14px] font-bold text-slate-800 tracking-wide">
+                Full Name
+              </label>
+              <input
+                className="w-full rounded-xl px-4 py-3.5 text-[15px]"
+                type="text"
+                autoComplete="name"
+                value={name}
+                onChange={(event) => {
+                  setName(event.target.value);
+                  setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                }}
+                placeholder="John Doe"
+              />
+              {fieldErrors.name && (
+                <p className="text-[13px] text-red-600 font-bold mt-1">{fieldErrors.name}</p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[14px] font-bold text-slate-800 tracking-wide">
+                Email Address
+              </label>
+              <input
+                className="w-full rounded-xl px-4 py-3.5 text-[15px]"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                }}
+                placeholder="developer@example.com"
+              />
+              {fieldErrors.email && (
+                <p className="text-[13px] text-red-600 font-bold mt-1">{fieldErrors.email}</p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[14px] font-bold text-slate-800 tracking-wide">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  className="w-full rounded-xl px-4 py-3.5 pr-12 text-[15px]"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                  }}
+                  placeholder="At least 8 characters"
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-4 inline-flex items-center text-slate-400 hover:text-primary-700 transition-colors"
+                >
+                  {showPassword ? (
+                    <svg className="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 3l18 18" />
+                      <path d="M10.58 10.58a2 2 0 1 0 2.83 2.83" />
+                      <path d="M9.88 5.09A10.94 10.94 0 0 1 12 5c5 0 9.27 3.11 11 7-0.52 1.18-1.27 2.26-2.22 3.18" />
+                      <path d="M6.61 6.61C4.62 7.86 3.12 9.75 2 12c1.73 3.89 6 7 10 7 1.63 0 3.18-0.33 4.59-0.91" />
+                    </svg>
+                  ) : (
+                    <svg className="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {fieldErrors.password && (
+                <p className="text-[13px] text-red-600 font-bold mt-1">{fieldErrors.password}</p>
+              )}
+            </div>
+
+            <div className="pt-2">
+              <button
+                className="btn-primary w-full shadow-lg"
+                type="button"
+                onClick={handleSignup}
+                disabled={
+                  isPending ||
+                  name.trim().length < 2 ||
+                  email.trim().length < 3 ||
+                  password.length < 8
+                }
+              >
+                {isPending ? "Creating account..." : "Create account"}
               </button>
             </div>
-            {fieldErrors.password ? (
-              <p className="text-xs text-red-600 mt-1">
-                {fieldErrors.password}
-              </p>
-            ) : null}
           </div>
-        </div>
+        </section>
 
-        <button
-          className="btn-primary"
-          type="button"
-          onClick={handleSignup}
-          disabled={
-            isPending ||
-            name.trim().length < 2 ||
-            email.trim().length < 3 ||
-            password.length < 8
-          }
-        >
-          {isPending ? "Creating account..." : "Create Account"}
-        </button>
-
-        <p className="text-center text-slate-500 text-sm mt-2">
+        <p className="text-center text-slate-600 font-medium text-[15px]">
           Already have an account?{" "}
           <Link
             href="/auth/login"
-            className="text-primary-600 font-bold hover:underline underline-offset-2"
+            className="text-primary-800 font-bold hover:text-primary-900 hover:underline underline-offset-4"
           >
-            Sign in here
+            Sign in
           </Link>
         </p>
-      </section>
+      </div>
     </main>
   );
 }

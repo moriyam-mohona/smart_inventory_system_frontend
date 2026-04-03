@@ -22,18 +22,14 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   };
 
   return (
-    <aside className="relative flex h-screen w-full flex-shrink-0 flex-col overflow-hidden md:w-[300px] md:sticky md:top-0">
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950" />
-      <div className="absolute -top-16 -left-16 h-44 w-44 rounded-full bg-primary-500/20 blur-3xl" />
-      <div className="absolute bottom-24 -right-20 h-52 w-52 rounded-full bg-secondary-500/20 blur-3xl" />
-
-      <div className="relative z-10 m-3 flex h-[calc(100vh-1.5rem)] flex-col rounded-3xl border border-white/15 bg-white/8 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl">
+    <aside className="flex h-full w-full flex-col bg-transparent z-20">
+      <div className="flex h-full flex-col relative z-10 pt-4">
         {/* Logo Section */}
-        <div className="border-b border-white/10 px-6 py-6">
+        <div className="px-6 pb-6 mb-2">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg shadow-primary-700/35">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary-900 to-primary-700 text-white shadow-md shadow-primary-900/20 border border-white/20">
               <svg
-                className="h-5 w-5 text-white"
+                className="h-5 w-5"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -41,38 +37,36 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-bold leading-tight text-white">
+              <p className="text-[17px] font-extrabold leading-tight text-slate-800 tracking-tight">
                 SmartInventory
               </p>
-              <p className="text-xs font-medium text-slate-300/90">
-                Control Center
+              <p className="text-[12px] font-bold text-primary-700 uppercase tracking-widest mt-0.5">
+                Control
               </p>
             </div>
           </div>
         </div>
+
         {/* Navigation Section */}
-        <nav className="flex-1 px-4 py-6">
-          <p className="mb-4 px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300/80">
+        <nav className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar">
+          <p className="mb-3 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">
             Navigation
           </p>
-          <ul className="space-y-2.5">
+          <ul className="space-y-1.5 flex flex-col gap-1">
             {navItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+                  className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-[14px] font-bold transition-all duration-300 ${
                     isActive(item.href)
-                      ? "border border-primary-300/30 bg-gradient-to-r from-primary-500/30 to-primary-700/20 text-white shadow-lg shadow-primary-900/40"
-                      : "border border-transparent text-slate-300/85 hover:border-white/15 hover:bg-white/10 hover:text-white"
+                      ? "bg-white/80 text-primary-800 shadow-sm border border-white"
+                      : "text-slate-600 hover:bg-white/50 hover:text-primary-800"
                   }`}
                 >
-                  <span className="text-lg transition-transform duration-200 group-hover:scale-110">
+                  <span className={`text-[18px] transition-transform duration-300 group-hover:scale-110 ${isActive(item.href) ? 'text-primary-700' : 'text-slate-400 group-hover:text-primary-600'}`}>
                     {item.icon}
                   </span>
-                  <span className="flex-1">{item.label}</span>
-                  {isActive(item.href) && (
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary-200 shadow shadow-primary-200/70" />
-                  )}
+                  <span className="flex-1 tracking-wide">{item.label}</span>
                 </Link>
               </li>
             ))}
@@ -80,15 +74,15 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
         </nav>
 
         {/* Logout Section */}
-        <div className="mt-auto border-t border-white/10 p-4">
+        <div className="mt-auto p-4 border-t border-slate-200/50">
           <Link
             href="/auth/login"
-            className="group flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-slate-300/85 transition-all duration-200 hover:border-red-300/25 hover:bg-red-500/10 hover:text-red-200"
+            className="group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-[14px] font-bold text-slate-600 transition-all duration-300 hover:bg-red-500/10 hover:text-red-700 border border-transparent hover:border-red-500/20"
           >
-            <span className="text-lg transition-transform duration-200 group-hover:scale-110">
+            <span className="text-[18px] transition-transform duration-300 group-hover:scale-110 text-slate-400 group-hover:text-red-600">
               🚪
             </span>
-            <span>Logout</span>
+            <span className="tracking-wide">Sign out</span>
           </Link>
         </div>
       </div>

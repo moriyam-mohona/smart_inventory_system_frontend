@@ -82,103 +82,106 @@ function VerifyOtpContent() {
   }
 
   return (
-    <section className="border border-slate-200 rounded-3xl bg-white/70 backdrop-blur-xl shadow-xl p-8 flex flex-col gap-6 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl -z-10"></div>
-
-      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-primary-700 text-white flex items-center justify-center mb-2 shadow-lg shadow-primary-600/30">
-        <svg
-          className="w-6 h-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-        </svg>
-      </div>
-
-      <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-          Verify OTP
+    <div className="w-full max-w-[460px] z-10 flex flex-col items-center">
+      {/* Logo / Header */}
+      <div className="flex flex-col items-center mb-10 w-full text-center">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-900 to-primary-700 text-white flex items-center justify-center mb-6 shadow-lg shadow-primary-900/30 border border-white/20 backdrop-blur-sm">
+          <svg
+            className="w-8 h-8"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h1 className="text-[32px] font-extrabold text-slate-900 tracking-tight mb-2">
+          Verify your email
         </h1>
-        <p className="text-slate-500 text-sm mt-1">
+        <p className="text-slate-600 font-medium text-[16px]">
           Enter the 6-digit verification code sent to{" "}
-          <strong className="text-slate-700">{email}</strong>.
-          {type === "reset" && " This code expires in 5 minutes."}
+          <strong className="text-primary-900 font-bold">{email}</strong>.
         </p>
-        {isResetFlow ? (
-          <p className="text-xs font-semibold text-amber-700 mt-2">
-            OTP expires in {countdownLabel}
+        {isResetFlow && (
+          <p className="text-[13px] font-bold text-accent-600 mt-2">
+            Code expires in {countdownLabel}
           </p>
-        ) : null}
+        )}
       </div>
 
-      {message && (
-        <div
-          className={`p-3 rounded-xl text-sm font-semibold border ${
-            resultMessageIsSuccess(message)
-              ? "bg-green-50 text-green-700 border-green-200"
-              : "bg-red-50 text-red-700 border-red-200"
-          }`}
-        >
-          {message}
-        </div>
-      )}
+      <section className="card-glass p-8 sm:p-10 w-full mb-8">
+        {message && (
+          <div
+            className={`p-4 rounded-xl text-[14px] font-bold mb-6 flex items-center gap-3 border backdrop-blur-md ${
+              resultMessageIsSuccess(message)
+                ? "bg-emerald-500/10 text-emerald-800 border-emerald-500/30"
+                : "bg-red-500/10 text-red-800 border-red-500/30"
+            }`}
+          >
+            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              {resultMessageIsSuccess(message) ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              )}
+            </svg>
+            {message}
+          </div>
+        )}
 
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-slate-900">
-            One-Time Password
-          </label>
-          <input
-            className="w-full border border-slate-200 rounded-xl bg-white px-4 py-3 text-sm focus:outline-none focus:border-primary-700 focus:ring-4 focus:ring-primary-700/15 transition-all text-slate-900 text-center tracking-[0.5em] font-mono text-xl"
-            type="text"
-            maxLength={6}
-            value={otp}
-            onChange={(event) => {
-              setOtp(event.target.value.replace(/\D/g, ""));
-              setFieldError("");
-            }}
-            placeholder="• • • • • •"
-          />
-          {fieldError ? (
-            <p className="text-xs text-red-600 text-center mt-1">
-              {fieldError}
+        <div className="flex flex-col gap-6 relative z-10">
+          <div className="flex flex-col gap-3">
+            <input
+              className="w-full rounded-xl px-4 py-4 text-[15px] text-center tracking-[0.5em] font-mono text-xl md:text-2xl"
+              type="text"
+              maxLength={6}
+              value={otp}
+              onChange={(event) => {
+                setOtp(event.target.value.replace(/\D/g, ""));
+                setFieldError("");
+              }}
+              placeholder="• • • • • •"
+            />
+            {fieldError && (
+              <p className="text-[13px] text-red-600 font-bold text-center">{fieldError}</p>
+            )}
+            <p className="text-[13px] text-slate-500 font-bold text-center mt-2">
+              Demo code: <span className="font-mono text-slate-700 ml-1">123456</span>
             </p>
-          ) : null}
-          <p className="text-xs text-slate-400 text-center mt-1">
-            Demo Code: 123456
-          </p>
-        </div>
-      </div>
+          </div>
 
-      <button
-        className="btn-primary"
-        type="button"
-        onClick={handleVerify}
-        disabled={
-          isPending || otp.length !== 6 || (isResetFlow && secondsLeft <= 0)
-        }
-      >
-        {isPending ? "Verifying..." : "Verify OTP"}
-      </button>
-    </section>
+          <div className="pt-2">
+            <button
+              className="btn-primary w-full shadow-lg"
+              type="button"
+              onClick={handleVerify}
+              disabled={
+                isPending || otp.length !== 6 || (isResetFlow && secondsLeft <= 0)
+              }
+            >
+              {isPending ? "Verifying..." : "Verify code"}
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 
 function resultMessageIsSuccess(msg: string) {
-  return msg.includes("complete");
+  return msg.includes("complete") || msg.includes("success");
 }
 
 export default function VerifyOtpPage() {
   return (
-    <main className="w-full max-w-md mx-auto py-12 flex flex-col justify-center min-h-[calc(100vh-100px)] px-4">
+    <main className="w-full min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative">
       <Suspense
         fallback={
-          <div className="p-8 text-center text-slate-500">Loading...</div>
+          <div className="p-8 text-center text-primary-900 font-bold backdrop-blur-md bg-white/50 rounded-xl">Loading...</div>
         }
       >
         <VerifyOtpContent />
