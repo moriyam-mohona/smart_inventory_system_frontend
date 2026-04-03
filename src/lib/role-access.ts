@@ -21,7 +21,7 @@ export const navigationByRole: Record<
   ],
   MANAGER: [
     { label: "Dashboard", href: "/dashboard", icon: "📊" },
-    { label: "Manager Workspace", href: "/dashboard/manager", icon: "🛠️" },
+    { label: "Categories", href: "/dashboard/categories", icon: "📂" },
     { label: "Products", href: "/dashboard/products", icon: "📦" },
     { label: "Orders", href: "/dashboard/orders", icon: "📋" },
     { label: "Restock Queue", href: "/dashboard/low-stock", icon: "⚠️" },
@@ -29,14 +29,12 @@ export const navigationByRole: Record<
 };
 
 const adminOnlyPrefixes = [
-  "/dashboard/categories",
   "/dashboard/users",
   "/dashboard/activity",
   "/dashboard/analytics",
 ];
 
 const managerOnlyPrefixes = [
-  "/dashboard/manager",
   "/dashboard/low-stock",
   "/dashboard/orders/new",
 ];
@@ -54,5 +52,5 @@ export function canAccessPath(role: AppRole, pathname: string): boolean {
     return role === "MANAGER";
   }
 
-  return pathname.startsWith("/dashboard");
+  return pathname.startsWith("/");
 }

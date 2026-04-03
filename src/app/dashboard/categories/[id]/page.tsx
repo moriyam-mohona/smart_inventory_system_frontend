@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { message } from "antd";
+import { Modal, message } from "antd";
 
 import { FormModalShell } from "@/components/form-modal-shell";
 import {
   banCategoryByAdmin,
-  getCategoriesByManager,
+  deleteCategoryByManager,
+  getCategoryDetails,
   updateCategoryByManager,
 } from "@/lib/auth-service";
 import { useAppSelector } from "@/redux/hooks";
@@ -17,9 +18,12 @@ export default function CategoryDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const accessToken = useAppSelector((state) => state.auth.access_token);
+  const userRole = useAppSelector((state) => state.auth.user?.role);
 
   const [categoryName, setCategoryName] = useState("");
   const [initialCategoryName, setInitialCategoryName] = useState("");
+  const [isActive, setIsActive] = useState(true);
+  const [details, setDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingCategory, setLoadingCategory] = useState(false);
   const [error, setError] = useState("");
@@ -38,16 +42,12 @@ export default function CategoryDetailPage() {
 
     try {
       setLoadingCategory(true);
-      const categories = await getCategoriesByManager(accessToken);
-      const found = categories.find((item) => item.id === categoryId);
+      const details = await getCategoryDetails(accessToken, categoryId);
 
-      if (!found) {
-        setError("Category not found.");
-        return;
-      }
-
-      setCategoryName(found.name);
-      setInitialCategoryName(found.name);
+      setCategoryName(details.name);
+      setInitialCategoryName(details.name);
+      setIsActive(details.isActive !== false);
+      setDetails(details);
       setError("");
     } catch (err) {
       const text =
@@ -56,7 +56,7 @@ export default function CategoryDetailPage() {
     } finally {
       setLoadingCategory(false);
     }
-  }, [accessToken, categoryId]);
+  }, [accessToken, categoryId, userRole]);
 
   useEffect(() => {
     void loadCategory();
@@ -97,36 +97,71 @@ export default function CategoryDetailPage() {
     }
   };
 
-  const handleBan = async () => {
-    if (
-      !confirm(
-        "Ban this category? This is an admin-only action and will disable this category.",
-      )
-    ) {
-      return;
-    }
+  const handleBan = () => {
+    Modal.confirm({
+      title: "Ban Category",
+      content: "Are you sure you want to ban this category? This is an admin-only action and will disable this category's functionality.",
+      okText: "Yes, Ban Category",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        if (!accessToken || !categoryId) {
+          setError("Missing auth token. Please login again.");
+          return;
+        }
 
-    if (!accessToken || !categoryId) {
-      setError("Missing auth token. Please login again.");
-      return;
-    }
+        setIsLoading(true);
+        setError("");
+        setSuccessMessage("");
 
-    setIsLoading(true);
-    setError("");
-    setSuccessMessage("");
+        try {
+          await banCategoryByAdmin(accessToken, categoryId);
+          messageApi.success("Category banned.");
+          setIsActive(false);
+        } catch (err) {
+          const text =
+            err instanceof Error
+              ? err.message
+              : "Failed to ban category. Please try again.";
+          setError(text);
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
+  };
 
-    try {
-      await banCategoryByAdmin(accessToken, categoryId);
-      messageApi.success("Category banned.");
-      router.push("/dashboard/categories");
-    } catch (err) {
-      const text =
-        err instanceof Error
-          ? err.message
-          : "Failed to ban category. Please try again.";
-      setError(text);
-      setIsLoading(false);
-    }
+  const handleDelete = () => {
+    Modal.confirm({
+      title: "Confirm Deletion",
+      content: "Are you sure you want to permanently delete this category? This action cannot be undone and will fail if the category contains products.",
+      okText: "Yes, Delete It",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        if (!accessToken || !categoryId) {
+          setError("Missing auth token. Please login again.");
+          return;
+        }
+
+        setIsLoading(true);
+        setError("");
+        setSuccessMessage("");
+
+        try {
+          await deleteCategoryByManager(accessToken, categoryId);
+          messageApi.success("Category deleted.");
+          router.push("/dashboard/categories");
+        } catch (err) {
+          const text =
+            err instanceof Error
+              ? err.message
+              : "Failed to delete category. It might still contain products.";
+          setError(text);
+          setIsLoading(false);
+        }
+      },
+    });
   };
 
   return (
@@ -151,12 +186,12 @@ export default function CategoryDetailPage() {
               clipRule="evenodd"
             />
           </svg>
-          <span className="text-slate-600">Edit Category</span>
+          <span className="text-slate-600">{userRole === "ADMIN" ? "Category Details" : "Edit Category"}</span>
         </div>
 
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${isActive ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/20' : 'bg-gradient-to-br from-red-500 to-red-600 shadow-red-500/20'}`}>
               <svg
                 className="w-6 h-6 text-white"
                 fill="currentColor"
@@ -166,11 +201,18 @@ export default function CategoryDetailPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-                Edit Category
-              </h1>
-              <p className="text-sm text-slate-500">
-                Update category or ban it as admin.
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                  {userRole === "ADMIN" ? "Category Details" : "Edit Category"}
+                </h1>
+                {!isActive && (
+                  <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 border border-red-200/60 uppercase tracking-widest mt-1">
+                    Banned
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-slate-500 mt-1">
+                {userRole === "ADMIN" ? "View category statistics and manage restrictions." : "Update category details or manage status"}
               </p>
             </div>
           </div>
@@ -215,66 +257,136 @@ export default function CategoryDetailPage() {
                 </div>
               )}
 
-              <div className="mb-8">
-                <label
-                  htmlFor="categoryName"
-                  className="block text-sm font-semibold text-slate-900 mb-3"
-                >
-                  Category Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="categoryName"
-                  type="text"
-                  value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
-                  placeholder="e.g., Electronics"
-                  maxLength={100}
-                  disabled={isLoading || loadingCategory}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-white text-slate-900 placeholder-slate-400 transition-all focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:bg-slate-50 disabled:text-slate-500"
-                />
-                <p className="text-xs text-slate-500 mt-2">
-                  {categoryName.length}/100 characters
-                </p>
-              </div>
+              {userRole !== "ADMIN" && (
+                <div className="mb-8">
+                  <label
+                    htmlFor="categoryName"
+                    className="block text-sm font-semibold text-slate-900 mb-3"
+                  >
+                    Category Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="categoryName"
+                    type="text"
+                    value={categoryName}
+                    onChange={(e) => setCategoryName(e.target.value)}
+                    placeholder="e.g., Electronics"
+                    maxLength={100}
+                    disabled={isLoading || loadingCategory || !isActive}
+                    className="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200 hover:border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 transition-all focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:bg-slate-100 disabled:text-slate-500 disabled:hover:border-slate-200"
+                  />
+                  <p className="text-xs text-slate-500 mt-2">
+                    {categoryName.length}/100 characters
+                  </p>
+                </div>
+              )}
 
               <div className="mb-8 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                <h4 className="font-semibold text-slate-900 text-sm mb-3">
-                  Category Information
+                <h4 className="font-semibold text-slate-900 text-sm mb-4">
+                  Category Details & Summary
                 </h4>
-                <p className="text-sm text-slate-600">
-                  Original name: {initialCategoryName || "-"}
-                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-4">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Original Name</p>
+                    <p className="text-sm text-slate-700 font-medium">{initialCategoryName || "-"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Status</p>
+                    <p className="text-sm text-slate-700 font-medium">{isActive ? "Active" : "Banned"}</p>
+                  </div>
+                  
+                  {details && (
+                    <>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Total Products</p>
+                        <p className="text-sm text-slate-700 font-medium">{details.summary?.totalProducts ?? 0}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Active / Out of Stock</p>
+                        <p className="text-sm text-slate-700 font-medium">{details.summary?.activeProducts ?? 0} / {details.summary?.outOfStockProducts ?? 0}</p>
+                      </div>
+                      
+                      {details.createdBy && (
+                        <div className="sm:col-span-2">
+                          <p className="text-xs text-slate-500 mb-1">Created By</p>
+                          <p className="text-sm text-slate-700 font-medium">
+                            {details.createdBy.name} <span className="text-slate-400 font-normal">({details.createdBy.email})</span> - <span className="text-xs bg-slate-200 py-0.5 px-1.5 rounded">{details.createdBy.role}</span>
+                          </p>
+                        </div>
+                      )}
+                      
+                      {details.createdAt && (
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Created At</p>
+                          <p className="text-sm text-slate-700 font-medium">{new Date(details.createdAt).toLocaleString()}</p>
+                        </div>
+                      )}
+                      
+                      {details.updatedAt && (
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Last Updated</p>
+                          <p className="text-sm text-slate-700 font-medium">{new Date(details.updatedAt).toLocaleString()}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={handleBan}
-                  disabled={isLoading || loadingCategory}
-                  className="w-full sm:w-auto px-6 py-2.5 border border-amber-200 text-amber-700 rounded-lg font-semibold text-sm hover:bg-amber-50 hover:border-amber-300 transition-all focus:outline-none focus:ring-2 focus:ring-amber-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Ban Category
-                </button>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <Link
-                    href="/dashboard/categories"
-                    className="flex-1 sm:flex-none px-6 py-2.5 border border-slate-200 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300/50 text-center"
-                  >
-                    Cancel
-                  </Link>
+                {userRole === "ADMIN" && (
                   <button
-                    type="submit"
-                    disabled={
-                      isLoading ||
-                      loadingCategory ||
-                      !categoryName.trim() ||
-                      categoryName.trim() === initialCategoryName
-                    }
-                    className="flex-1 sm:flex-none px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 active:scale-95"
+                    type="button"
+                    onClick={handleBan}
+                    disabled={isLoading || loadingCategory || !isActive}
+                    className="w-full sm:w-auto px-6 py-2.5 border border-amber-200 text-amber-700 rounded-lg font-semibold text-sm hover:bg-amber-50 hover:border-amber-300 transition-all focus:outline-none focus:ring-2 focus:ring-amber-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? "Saving..." : "Save Changes"}
+                    {isActive ? "Ban Category" : "Already Banned"}
                   </button>
-                </div>
+                )}
+                {userRole !== "ADMIN" && (
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={isLoading || loadingCategory}
+                    className="w-full sm:w-auto px-6 py-2.5 border border-red-200 text-red-700 rounded-lg font-semibold text-sm hover:bg-red-50 hover:border-red-300 transition-all focus:outline-none focus:ring-2 focus:ring-red-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Delete Category
+                  </button>
+                )}
+                
+                {userRole !== "ADMIN" ? (
+                  <div className="flex items-center gap-3 w-full sm:w-auto ml-auto">
+                    <Link
+                      href="/dashboard/categories"
+                      className="flex-1 sm:flex-none px-6 py-2.5 border border-slate-200 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300/50 text-center"
+                    >
+                      Cancel
+                    </Link>
+                    <button
+                      type="submit"
+                      disabled={
+                        isLoading ||
+                        loadingCategory ||
+                        !categoryName.trim() ||
+                        categoryName.trim() === initialCategoryName ||
+                        !isActive
+                      }
+                      className="flex-1 sm:flex-none px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 active:scale-95"
+                    >
+                      {isLoading ? "Saving..." : "Save Changes"}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 w-full sm:w-auto ml-auto">
+                    <Link
+                      href="/dashboard/categories"
+                      className="flex-1 sm:flex-none px-6 py-2.5 border border-slate-200 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300/50 text-center"
+                    >
+                      Back to Categories
+                    </Link>
+                  </div>
+                )}
               </div>
             </form>
           </div>

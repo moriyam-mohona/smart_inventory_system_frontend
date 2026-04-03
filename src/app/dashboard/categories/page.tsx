@@ -12,6 +12,7 @@ import { useAppSelector } from "@/redux/hooks";
 
 export default function CategoriesPage() {
   const accessToken = useAppSelector((state) => state.auth.access_token);
+  const userRole = useAppSelector((state) => state.auth.user?.role);
   const [categories, setCategories] = useState<ManagerCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
@@ -23,7 +24,7 @@ export default function CategoriesPage() {
 
     try {
       setLoading(true);
-      const rows = await getCategoriesByManager(accessToken);
+      const rows = await getCategoriesByManager(accessToken, userRole === "ADMIN");
       setCategories(rows);
     } catch (error) {
       const text =
@@ -65,16 +66,18 @@ export default function CategoriesPage() {
               </div>
             </div>
           </div>
-          <Link href="/dashboard/categories/new" className="btn-primary">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            New Category
-          </Link>
+          {userRole === "MANAGER" && (
+            <Link href="/dashboard/categories/new" className="btn-primary">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              New Category
+            </Link>
+          )}
         </div>
       </div>
 
@@ -86,18 +89,18 @@ export default function CategoriesPage() {
       ) : categories.length > 0 ? (
         <div className="grid gap-4">
           {categories.map(
-            (cat: { id: string; name: string; createdAt?: string }) => (
+            (cat: ManagerCategory) => (
               <Link key={cat.id} href={`/dashboard/categories/${cat.id}`}>
-                <div className="card card-hover p-5 group overflow-hidden relative">
+                <div className={`card card-hover p-5 group overflow-hidden relative ${!cat.isActive ? 'opacity-70' : ''}`}>
                   {/* Background accent */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  <div className={`absolute inset-0 bg-gradient-to-r ${cat.isActive ? 'from-primary-50' : 'from-red-50'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none`} />
 
                   <div className="relative flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       {/* Category Icon */}
-                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center group-hover:from-primary-200 group-hover:to-primary-100 transition-colors shadow-sm">
+                      <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center transition-colors shadow-sm ${cat.isActive ? 'bg-gradient-to-br from-primary-100 to-primary-50 group-hover:from-primary-200 group-hover:to-primary-100' : 'bg-gradient-to-br from-red-100 to-red-50 group-hover:from-red-200 group-hover:to-red-100'}`}>
                         <svg
-                          className="w-6 h-6 text-primary-600"
+                          className={`w-6 h-6 ${cat.isActive ? 'text-primary-600' : 'text-red-500'}`}
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -106,22 +109,28 @@ export default function CategoriesPage() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-900 text-sm mb-1 truncate group-hover:text-primary-600 transition-colors">
-                          {cat.name}
-                        </h3>
-                        <p className="text-xs text-slate-500">
-                          Created on{" "}
-                          {cat.createdAt
-                            ? new Date(cat.createdAt).toLocaleDateString(
-                                "en-US",
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                },
-                              )
-                            : "-"}
-                        </p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className={`font-semibold text-sm truncate transition-colors ${cat.isActive ? 'text-slate-900 group-hover:text-primary-600' : 'text-slate-700 group-hover:text-red-600'}`}>
+                            {cat.name}
+                          </h3>
+                          {!cat.isActive && (
+                            <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 border border-red-200/60 uppercase tracking-widest">
+                              Banned
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-slate-500">
+                          <span className="flex items-center gap-1.5 font-medium">
+                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                            {cat._count?.products ?? 0} Products
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            {cat.createdAt
+                              ? new Date(cat.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+                              : "-"}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -175,16 +184,18 @@ export default function CategoriesPage() {
             Get started by creating your first product category to organize your
             inventory.
           </p>
-          <Link href="/dashboard/categories/new" className="btn-primary">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Create First Category
-          </Link>
+          {userRole === "MANAGER" && (
+            <Link href="/dashboard/categories/new" className="btn-primary">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Create First Category
+            </Link>
+          )}
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { message } from "antd";
 
 import { FormModalShell } from "@/components/form-modal-shell";
@@ -16,6 +16,14 @@ export default function NewCategoryPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [messageApi, contextHolder] = message.useMessage();
+
+  const userRole = useAppSelector((state) => state.auth.user?.role);
+  useEffect(() => {
+    if (userRole === "ADMIN") {
+      messageApi.error("Administrators cannot create categories.");
+      router.replace("/dashboard/categories");
+    }
+  }, [userRole, router, messageApi]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,7 +144,7 @@ export default function NewCategoryPage() {
                   placeholder="e.g., Electronics, Clothing, Groceries, Furniture"
                   maxLength={100}
                   disabled={isLoading}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-white text-slate-900 placeholder-slate-400 transition-all focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 disabled:bg-slate-50 disabled:text-slate-500"
+                  className="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200 hover:border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 transition-all focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:bg-slate-100 disabled:text-slate-500 disabled:hover:border-slate-200"
                 />
                 <p className="text-xs text-slate-500 mt-2">
                   {categoryName.length}/100 characters

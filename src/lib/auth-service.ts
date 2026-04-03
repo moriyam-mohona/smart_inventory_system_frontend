@@ -44,6 +44,8 @@ export type ManagerFullDetails = {
 export type ManagerCategory = {
   id: string;
   name: string;
+  isActive?: boolean;
+  _count?: { products: number };
   createdAt?: string;
   updatedAt?: string;
   [key: string]: unknown;
@@ -55,6 +57,27 @@ export type CreateManagerProductPayload = {
   price: number;
   stockQuantity: number;
   minStockThreshold: number;
+  sku?: string;
+};
+
+export type UpdateManagerProductPayload = Partial<CreateManagerProductPayload> & {
+  status?: string;
+  isActive?: boolean;
+};
+
+export type ManagerProduct = {
+  id: string;
+  name: string;
+  sku?: string;
+  price: number;
+  stockQuantity: number;
+  minStockThreshold: number;
+  status: string;
+  isActive: boolean;
+  categoryId: string;
+  category?: { id: string; name: string };
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 function extractApiErrorMessage(
@@ -499,6 +522,8 @@ function normalizeCategory(item: Record<string, unknown>): ManagerCategory {
     ...item,
     id: rawId,
     name: typeof item.name === "string" ? item.name : "Unnamed Category",
+    isActive: typeof item.isActive === "boolean" ? item.isActive : true,
+    _count: typeof item._count === "object" && item._count !== null ? (item._count as { products: number }) : undefined,
     createdAt: typeof item.createdAt === "string" ? item.createdAt : undefined,
     updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : undefined,
   };
@@ -506,8 +531,10 @@ function normalizeCategory(item: Record<string, unknown>): ManagerCategory {
 
 export async function getCategoriesByManager(
   accessToken: string,
+  includeBanned: boolean = false,
 ): Promise<ManagerCategory[]> {
-  const response = await fetch(`${API_URL}/categories`, {
+  const url = includeBanned ? `${API_URL}/categories?includeBanned=true` : `${API_URL}/categories`;
+  const response = await fetch(url, {
     method: "GET",
     headers: authHeaders(accessToken),
     credentials: "include",
@@ -589,6 +616,38 @@ export async function deleteCategoryByManager(
   await parseApiResponse(response);
 }
 
+export type CategoryDetails = ManagerCategory & {
+  createdBy?: { id: string, name: string, email: string, role: string };
+  summary?: { totalProducts: number, activeProducts: number, outOfStockProducts: number };
+  productCount?: number;
+  totalStock?: number;
+  totalValue?: number;
+  [key: string]: unknown;
+};
+
+export async function getCategoryDetails(
+  accessToken: string,
+  categoryId: string,
+): Promise<CategoryDetails> {
+  const response = await fetch(`${API_URL}/categories/${categoryId}/details`, {
+    method: "GET",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
+
+  const data = await parseApiResponse(response);
+  const payload = ((data as { data?: unknown }).data ?? {}) as Record<string, unknown>;
+  
+  return {
+    ...normalizeCategory(payload),
+    createdBy: payload.createdBy as CategoryDetails['createdBy'],
+    summary: payload.summary as CategoryDetails['summary'],
+    productCount: typeof payload.summary === 'object' && payload.summary ? (payload.summary as any).totalProducts : undefined,
+    totalStock: typeof payload.totalStock === 'number' ? payload.totalStock : undefined,
+    totalValue: typeof payload.totalValue === 'number' ? payload.totalValue : undefined,
+  };
+}
+
 export async function banCategoryByAdmin(
   accessToken: string,
   categoryId: string,
@@ -613,5 +672,65 @@ export async function createProductByManager(
     credentials: "include",
   });
 
+  await parseApiResponse(response);
+}
+
+export async function getProductsList(accessToken: string, searchTerm?: string): Promise<ManagerProduct[]> {
+  const url = new URL(`${API_URL}/products`);
+  if (searchTerm) {
+    url.searchParams.append("searchTerm", searchTerm);
+  }
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
+  const data = await parseApiResponse(response);
+  const payloadData = (data as { data?: unknown }).data;
+  const items = (Array.isArray(payloadData) ? payloadData : []) as ManagerProduct[];
+  
+  return items.map(item => ({
+    ...item,
+    id: item.id || (item as any)._id,
+  }));
+}
+
+export async function updateProductByManager(
+  accessToken: string,
+  productId: string,
+  payload: UpdateManagerProductPayload,
+): Promise<void> {
+  const response = await fetch(`${API_URL}/products/${productId}`, {
+    method: "PATCH",
+    headers: authHeaders(accessToken),
+    body: JSON.stringify(payload),
+    credentials: "include",
+  });
+  await parseApiResponse(response);
+}
+
+export async function getProductDetails(accessToken: string, productId: string): Promise<ManagerProduct> {
+  const response = await fetch(`${API_URL}/products/${productId}`, {
+    method: "GET",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
+  const data = await parseApiResponse(response);
+  const item = (data as any).data;
+  return {
+    ...item,
+    id: item.id || item._id,
+  } as ManagerProduct;
+}
+
+export async function deactivateProductByAdmin(
+  accessToken: string,
+  productId: string,
+): Promise<void> {
+  const response = await fetch(`${API_URL}/products/${productId}/deactivate`, {
+    method: "PATCH",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
   await parseApiResponse(response);
 }
