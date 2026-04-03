@@ -2,25 +2,23 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { message } from "antd";
 
 import { FormModalShell } from "@/components/form-modal-shell";
-import {
-  getCategoriesByManager,
-  type ManagerCategory,
-} from "@/lib/auth-service";
 import { useAppSelector } from "@/redux/hooks";
 import { useCreateProductMutation } from "@/redux/features/product/productApi";
+import { useGetAllCategoriesQuery } from "@/redux/features/category/categoryApi";
 
 export default function NewProductPage() {
   const router = useRouter();
-  const accessToken = useAppSelector((state) => state.auth.access_token);
   const userRole = useAppSelector((state) => state.auth.user?.role);
-  
-  const [categories, setCategories] = useState<ManagerCategory[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-  
+
+  // RTK Query — only fetch active categories (managers can create products)
+  const { data: categoryRes, isLoading: loadingCategories } = useGetAllCategoriesQuery({});
+  const rawCategories = Array.isArray(categoryRes?.data) ? categoryRes.data : [];
+  const categories = rawCategories.filter((c: any) => c.isActive !== false);
+
   const [formData, setFormData] = useState({
     name: "",
     categoryId: "",
@@ -28,7 +26,14 @@ export default function NewProductPage() {
     stockQuantity: "",
     minStockThreshold: "5",
   });
-  
+
+  // Auto-select first available category
+  useEffect(() => {
+    if (categories.length > 0 && !formData.categoryId) {
+      setFormData((prev) => ({ ...prev, categoryId: categories[0].id }));
+    }
+  }, [categories.length]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [messageApi, contextHolder] = message.useMessage();
@@ -39,27 +44,6 @@ export default function NewProductPage() {
       router.replace("/dashboard/products");
     }
   }, [userRole, router, messageApi]);
-
-  const loadCategories = useCallback(async () => {
-    if (!accessToken) return;
-    try {
-      setLoadingCategories(true);
-      const rows = await getCategoriesByManager(accessToken);
-      const activeCats = rows.filter(cat => cat.isActive !== false);
-      setCategories(activeCats);
-      if (activeCats.length > 0 && !formData.categoryId) {
-        setFormData(prev => ({ ...prev, categoryId: activeCats[0].id }));
-      }
-    } catch (err) {
-       console.error("Failed to load categories.");
-    } finally {
-      setLoadingCategories(false);
-    }
-  }, [accessToken, formData.categoryId]);
-
-  useEffect(() => {
-    void loadCategories();
-  }, [loadCategories]);
 
   const [createProduct] = useCreateProductMutation();
 
@@ -76,8 +60,6 @@ export default function NewProductPage() {
     setIsLoading(true);
 
     try {
-      if (!accessToken) throw new Error("Missing auth token. Please login again.");
-
       await createProduct({
         name: formData.name.trim(),
         categoryId: formData.categoryId,
@@ -175,7 +157,7 @@ export default function NewProductPage() {
                     className="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200 hover:border-slate-300 rounded-xl text-slate-900 transition-all focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:bg-slate-100 disabled:text-slate-500"
                   >
                     <option value="" disabled>Select a Category</option>
-                    {categories.map((cat) => (
+                    {categories.map((cat: any) => (
                       <option key={cat.id} value={cat.id}>
                         {cat.name}
                       </option>

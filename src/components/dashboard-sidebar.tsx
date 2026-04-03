@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
 import type { UserRole } from "@/types/inventory";
 import { navigationByRole, normalizeRole } from "@/lib/role-access";
+import { logout } from "@/redux/features/auth/authSlice";
 
 interface DashboardSidebarProps {
   userRole: UserRole;
@@ -12,7 +14,18 @@ interface DashboardSidebarProps {
 
 export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
   const navItems = navigationByRole[normalizeRole(userRole)];
+
+  const handleLogout = () => {
+    // 1. Clear session from store
+    dispatch(logout());
+    // 2. Remove from localStorage (optional if Redux Persist is configured for the key)
+    localStorage.removeItem("smart_inventory_session");
+    // 3. Manually push to login (AuthGuard will also catch this)
+    router.replace("/auth/login");
+  };
 
   const isActive = (href: string) => {
     if (href === "/dashboard") {
@@ -73,17 +86,16 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
           </ul>
         </nav>
 
-        {/* Logout Section */}
         <div className="mt-auto p-4 border-t border-slate-200/50">
-          <Link
-            href="/auth/login"
+          <button
+            onClick={handleLogout}
             className="group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-[14px] font-bold text-slate-600 transition-all duration-300 hover:bg-red-500/10 hover:text-red-700 border border-transparent hover:border-red-500/20"
           >
             <span className="text-[18px] transition-transform duration-300 group-hover:scale-110 text-slate-400 group-hover:text-red-600">
               🚪
             </span>
             <span className="tracking-wide">Sign out</span>
-          </Link>
+          </button>
         </div>
       </div>
     </aside>

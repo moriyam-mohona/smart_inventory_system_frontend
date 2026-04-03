@@ -3,19 +3,28 @@ import { createQueryParams } from "@/utils/paramsFuntion";
 
 const orderApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // Create new order
+    // Create a new order — deducts stock, logs activity, sync restock queue
     createOrder: builder.mutation({
-      query: (orderData) => ({
+      query: (orderData: {
+        customerName: string;
+        items: Array<{ productId: string; quantity: number }>;
+      }) => ({
         url: "/orders",
         method: "POST",
         body: orderData,
       }),
-      invalidatesTags: ["order", "product", "restock"],
+      invalidatesTags: [
+        "order",
+        "product",  // stock was deducted
+        "restock",  // may have triggered a restock queue entry
+        "activityLog",
+        "analytics",
+      ],
     }),
 
     // Get all orders with filtering and pagination
     getAllOrders: builder.query({
-      query: (queryData) => {
+      query: (queryData?: Record<string, unknown>) => {
         const queryParams = createQueryParams(queryData);
         return {
           url: `/orders${queryParams}`,
@@ -25,18 +34,27 @@ const orderApi = baseApi.injectEndpoints({
       providesTags: ["order"],
     }),
 
-    // Get order details
+    // Get single order details (includes timeline + items)
     getOrderDetails: builder.query({
-      query: (orderId) => ({
+      query: (orderId: string) => ({
         url: `/orders/${orderId}`,
         method: "GET",
       }),
-      providesTags: (result, error, arg) => [{ type: "order", id: arg }, "order"],
+      providesTags: (result, error, arg) => [
+        { type: "order", id: arg },
+        "order",
+      ],
     }),
 
-    // Update order status
+    // Update order status (PENDING → CONFIRMED → SHIPPED → DELIVERED)
     updateOrderStatus: builder.mutation({
-      query: ({ orderId, statusData }) => ({
+      query: ({
+        orderId,
+        statusData,
+      }: {
+        orderId: string;
+        statusData: { status: string };
+      }) => ({
         url: `/orders/${orderId}/status`,
         method: "PATCH",
         body: statusData,
@@ -44,57 +62,25 @@ const orderApi = baseApi.injectEndpoints({
       invalidatesTags: (result, error, arg) => [
         { type: "order", id: arg.orderId },
         "order",
+        "activityLog",
+        "analytics",
       ],
     }),
 
-    // Cancel order
+    // Cancel order — restores product stock and syncs restock queue
     cancelOrder: builder.mutation({
-      query: (orderId) => ({
+      query: (orderId: string) => ({
         url: `/orders/${orderId}/cancel`,
         method: "PATCH",
       }),
       invalidatesTags: (result, error, arg) => [
         { type: "order", id: arg },
         "order",
-        "product", // Cancelling restores stock, so products are invalidated
-        "restock", // Restoring stock might resolve restock queue items
+        "product",    // stock restored
+        "restock",    // restock queue may have been updated
+        "activityLog",
+        "analytics",
       ],
-    }),
-
-    // Get order status counts summary
-    getOrderStatusCounts: builder.query({
-      query: () => ({
-        url: `/orders/summary/status-counts`,
-        method: "GET",
-      }),
-      providesTags: ["order"],
-    }),
-
-    // Update order items
-    updateOrderItems: builder.mutation({
-      query: ({ orderId, itemsData }) => ({
-        url: `/orders/${orderId}/items`,
-        method: "PATCH",
-        body: itemsData,
-      }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "order", id: arg.orderId },
-        "order",
-        "product",
-        "restock",
-      ],
-    }),
-
-    // Export orders
-    exportOrders: builder.query({
-      query: (queryData) => {
-        const queryParams = createQueryParams(queryData);
-        return {
-          url: `/orders/export${queryParams}`,
-          method: "GET",
-        };
-      },
-      // Not typically cached, or we could handle it via basic fetch in components
     }),
   }),
 });
@@ -105,7 +91,4 @@ export const {
   useGetOrderDetailsQuery,
   useUpdateOrderStatusMutation,
   useCancelOrderMutation,
-  useGetOrderStatusCountsQuery,
-  useUpdateOrderItemsMutation,
-  useLazyExportOrdersQuery,
 } = orderApi;

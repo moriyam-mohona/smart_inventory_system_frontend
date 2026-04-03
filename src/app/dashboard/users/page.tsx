@@ -18,17 +18,14 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  approveUserByAdmin,
-  createManagerAccount,
-  deleteUserByAdmin,
-  getAllUsersAdmin,
-  getManagerDetailsByAdmin,
-  restrictUserByAdmin,
-  type AdminManagedUser,
-  type ManagerFullDetails,
-} from "@/lib/auth-service";
 import { useAppSelector } from "@/redux/hooks";
+import {
+  useGetAllUsersQuery,
+  useRestrictUserMutation,
+  useDeleteUserMutation,
+  useCreateManagerMutation,
+  useGetManagerDetailsQuery,
+} from "@/redux/features/auth/authApi";
 
 type UserRecord = {
   id: string;
@@ -52,26 +49,18 @@ function statusColor(status: UserRecord["status"]) {
   return "error";
 }
 
-function normalizeUser(user: AdminManagedUser): UserRecord {
-  const id =
-    typeof user.id === "string"
-      ? user.id
-      : typeof user._id === "string"
-        ? user._id
-        : "";
+function normalizeUser(user: any): UserRecord {
+  const id = user.id || user._id || "";
 
   const isRestricted = user.isActive === false || user.status === "RESTRICTED";
   const isPending = user.isApproved === false || user.status === "PENDING";
 
   return {
     id,
-    name: typeof user.name === "string" ? user.name : "Unknown User",
-    email: typeof user.email === "string" ? user.email : "-",
-    role: typeof user.role === "string" ? user.role : "USER",
-    createdAt:
-      typeof user.createdAt === "string"
-        ? user.createdAt
-        : new Date().toISOString(),
+    name: user.name || "Unknown User",
+    email: user.email || "-",
+    role: user.role || "USER",
+    createdAt: user.createdAt || new Date().toISOString(),
     isApproved: user.isApproved !== false,
     status: isRestricted ? "RESTRICTED" : isPending ? "PENDING" : "ACTIVE",
   };
@@ -82,186 +71,78 @@ function getArrayCount(value: unknown) {
 }
 
 export default function UsersPage() {
-  const accessToken = useAppSelector((state) => state.auth.access_token);
-  const [users, setUsers] = useState<UserRecord[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [detailsLoading, setDetailsLoading] = useState(false);
-  const [managerDetails, setManagerDetails] =
-    useState<ManagerFullDetails | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
   const [form] = Form.useForm<CreateManagerForm>();
   const [messageApi, contextHolder] = message.useMessage();
 
+  // Queries & Mutations
+  const { data: usersData, isLoading: loading, error: loadError } = useGetAllUsersQuery({});
+  const { data: managerDetailsRes, isFetching: detailsLoading } = useGetManagerDetailsQuery(selectedUserId || "", {
+    skip: !selectedUserId || !detailsOpen,
+  });
+  
+  const [restrictUser] = useRestrictUserMutation();
+  const [deleteUser] = useDeleteUserMutation();
+  const [createManager, { isLoading: creating }] = useCreateManagerMutation();
+
+  const usersRaw = Array.isArray(usersData?.data) ? usersData.data : [];
+  const users = useMemo(() => usersRaw.map(normalizeUser).filter((u: UserRecord) => u.id), [usersRaw]);
+  const managerDetails = managerDetailsRes?.data;
+
   const managers = useMemo(
-    () => users.filter((user) => user.role.toUpperCase() === "MANAGER"),
+    () => users.filter((user: UserRecord) => user.role.toUpperCase() === "MANAGER"),
     [users],
   );
 
   const stats = useMemo(() => {
-    const active = managers.filter((user) => user.status === "ACTIVE").length;
+    const active = managers.filter((user: UserRecord) => user.status === "ACTIVE").length;
     const restricted = managers.filter(
-      (user) => user.status === "RESTRICTED",
+      (user: UserRecord) => user.status === "RESTRICTED",
     ).length;
     return { managers: managers.length, active, restricted };
   }, [managers]);
 
-  const loadUsers = useCallback(async () => {
-    if (!accessToken) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const data = await getAllUsersAdmin(accessToken);
-      const normalized = data.map(normalizeUser).filter((user) => user.id);
-      setUsers(normalized);
-    } catch (error) {
-      const text =
-        error instanceof Error ? error.message : "Failed to load users.";
-      messageApi.error(text);
-    } finally {
-      setLoading(false);
-    }
-  }, [accessToken, messageApi]);
-
-  useEffect(() => {
-    void loadUsers();
-  }, [loadUsers]);
-
-  const refreshUsers = useCallback(async () => {
-    await loadUsers();
-  }, [loadUsers]);
-
-  const openDetails = async (user: UserRecord) => {
-    setSelectedUser(user);
+  const openDetails = (user: UserRecord) => {
+    setSelectedUserId(user.id);
     setDetailsOpen(true);
-    setManagerDetails(null);
-
-    if (!accessToken) {
-      messageApi.error("Missing admin token. Please login again.");
-      return;
-    }
-
-    try {
-      setDetailsLoading(true);
-      const details = await getManagerDetailsByAdmin(accessToken, user.id);
-      setManagerDetails(details);
-    } catch (error) {
-      const text =
-        error instanceof Error
-          ? error.message
-          : "Failed to load manager details.";
-      messageApi.error(text);
-    } finally {
-      setDetailsLoading(false);
-    }
   };
 
   const handleRestrict = async (user: UserRecord) => {
-    if (!accessToken) {
-      messageApi.error("Missing admin token. Please login again.");
-      return;
-    }
-
     try {
-      setUsers((prev) =>
-        prev.map((record) =>
-          record.id === user.id
-            ? {
-                ...record,
-                status:
-                  record.status === "RESTRICTED" ? "ACTIVE" : "RESTRICTED",
-              }
-            : record,
-        ),
-      );
-      await restrictUserByAdmin(accessToken, user.id);
+      await restrictUser(user.id).unwrap();
       messageApi.success("Manager access updated.");
-      await refreshUsers();
-    } catch (error) {
-      const text =
-        error instanceof Error
-          ? error.message
-          : "Failed to update manager access.";
-      messageApi.error(text);
-      await refreshUsers();
-    }
-  };
-
-  const handleApprove = async (user: UserRecord) => {
-    if (!accessToken) {
-      messageApi.error("Missing admin token. Please login again.");
-      return;
-    }
-
-    try {
-      setUsers((prev) =>
-        prev.map((record) =>
-          record.id === user.id
-            ? { ...record, isApproved: true, status: "ACTIVE" }
-            : record,
-        ),
-      );
-      await approveUserByAdmin(accessToken, user.id);
-      messageApi.success("Manager approved.");
-      await refreshUsers();
-    } catch (error) {
-      const text =
-        error instanceof Error ? error.message : "Failed to approve manager.";
-      messageApi.error(text);
-      await refreshUsers();
+    } catch (error: any) {
+      messageApi.error(error?.data?.message || "Failed to update manager access.");
     }
   };
 
   const handleDelete = async (user: UserRecord) => {
-    if (!accessToken) {
-      messageApi.error("Missing admin token. Please login again.");
-      return;
-    }
-
     try {
-      setUsers((prev) => prev.filter((record) => record.id !== user.id));
-      await deleteUserByAdmin(accessToken, user.id);
+      await deleteUser(user.id).unwrap();
       messageApi.success("Manager removed.");
-      if (selectedUser?.id === user.id) {
+      if (selectedUserId === user.id) {
         setDetailsOpen(false);
-        setSelectedUser(null);
       }
-      await refreshUsers();
-    } catch (error) {
-      const text =
-        error instanceof Error ? error.message : "Failed to delete manager.";
-      messageApi.error(text);
-      await refreshUsers();
+    } catch (error: any) {
+      messageApi.error(error?.data?.message || "Failed to delete manager.");
     }
   };
 
   const handleCreateManager = async (values: CreateManagerForm) => {
-    if (!accessToken) {
-      messageApi.error("Missing admin token. Please login again.");
-      return;
-    }
-
     try {
-      setCreating(true);
-      await createManagerAccount(accessToken, {
+      await createManager({
         name: values.name.trim(),
         email: values.email.trim().toLowerCase(),
         password: values.password,
-      });
+      }).unwrap();
+
       messageApi.success("Manager account created.");
       setCreateModalOpen(false);
       form.resetFields();
-      await refreshUsers();
-    } catch (error) {
-      const text =
-        error instanceof Error ? error.message : "Failed to create manager.";
-      messageApi.error(text);
-    } finally {
-      setCreating(false);
+    } catch (error: any) {
+      messageApi.error(error?.data?.message || "Failed to create manager.");
     }
   };
 
@@ -360,21 +241,6 @@ export default function UsersPage() {
       key: "actions",
       render: (_, user) => (
         <Space size={8} wrap>
-          {!user.isApproved ? (
-            <Popconfirm
-              title="Approve manager account?"
-              description="This will grant approved access for this manager."
-              okText="Approve"
-              cancelText="Cancel"
-              onConfirm={() => {
-                void handleApprove(user);
-              }}
-            >
-              <Button className="border border-emerald-200 text-emerald-700 hover:!border-emerald-400 hover:!text-emerald-700">
-                Approve Manager
-              </Button>
-            </Popconfirm>
-          ) : null}
           <Button
             className="border border-primary-200 text-primary-700 hover:!border-primary-500 hover:!text-primary-700"
             onClick={() => {
@@ -583,35 +449,35 @@ export default function UsersPage() {
               Manager details
             </div>
             <div className="mt-1 text-xl font-bold text-slate-900">
-              {selectedUser?.name ?? "Manager"}
+              {users.find((u: UserRecord) => u.id === selectedUserId)?.name ?? "Manager"}
             </div>
           </div>
         }
       >
-        {selectedUser ? (
+        {selectedUserId ? (
           <div className="space-y-6">
             <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-linear-to-br from-slate-50 to-white p-4">
               <Avatar
                 className="bg-[linear-gradient(135deg,#4f46e5,#7c3aed)] font-semibold"
                 size={56}
               >
-                {selectedUser.name
+                {(users.find((u: UserRecord) => u.id === selectedUserId)?.name || "M")
                   .split(" ")
-                  .map((part) => part[0])
+                  .map((part: string) => part[0])
                   .slice(0, 2)
                   .join("")}
               </Avatar>
               <div>
                 <div className="text-lg font-semibold text-slate-900">
-                  {selectedUser.name}
+                  {users.find((u: UserRecord) => u.id === selectedUserId)?.name}
                 </div>
                 <div className="text-sm text-slate-500">
-                  {selectedUser.email}
+                  {users.find((u: UserRecord) => u.id === selectedUserId)?.email}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-2">
                   <Tag color="blue">MANAGER</Tag>
-                  <Tag color={statusColor(selectedUser.status)}>
-                    {selectedUser.status}
+                  <Tag color={statusColor(users.find((u: UserRecord) => u.id === selectedUserId)?.status || "ACTIVE")}>
+                    {users.find((u: UserRecord) => u.id === selectedUserId)?.status}
                   </Tag>
                 </div>
               </div>
@@ -624,10 +490,10 @@ export default function UsersPage() {
               className="overflow-hidden rounded-2xl"
             >
               <Descriptions.Item label="Created At">
-                {new Date(selectedUser.createdAt).toLocaleString()}
+                {users.find((u: UserRecord) => u.id === selectedUserId)?.createdAt ? new Date(users.find((u: UserRecord) => u.id === selectedUserId)!.createdAt).toLocaleString() : "-"}
               </Descriptions.Item>
               <Descriptions.Item label="Status">
-                {selectedUser.status}
+                {users.find((u: UserRecord) => u.id === selectedUserId)?.status}
               </Descriptions.Item>
               <Descriptions.Item label="Products Created">
                 {
@@ -657,36 +523,28 @@ export default function UsersPage() {
             </div>
 
             <div className="flex flex-wrap justify-end gap-3">
-              {!selectedUser.isApproved ? (
-                <Button
-                  className="border border-emerald-200 text-emerald-700 hover:!border-emerald-400 hover:!text-emerald-700"
-                  onClick={() => {
-                    void handleApprove(selectedUser);
-                    setDetailsOpen(false);
-                  }}
-                >
-                  Approve Manager
-                </Button>
-              ) : null}
-              <Button
-                className="border border-amber-200 text-amber-700 hover:!border-amber-400 hover:!text-amber-700"
+              <button
+                type="button"
+                className="btn-secondary h-10 px-4"
                 onClick={() => {
-                  void handleRestrict(selectedUser);
+                  const user = users.find((u: UserRecord) => u.id === selectedUserId);
+                  if (user) void handleRestrict(user);
                   setDetailsOpen(false);
                 }}
               >
-                Restrict / Ban Manager
-              </Button>
-              <Button
-                danger
-                className="border border-rose-200 text-rose-600 hover:!border-rose-400 hover:!text-rose-600"
+                Toggle Access
+              </button>
+              <button
+                type="button"
+                className="btn-danger h-10 px-4"
                 onClick={() => {
-                  void handleDelete(selectedUser);
+                  const user = users.find((u: UserRecord) => u.id === selectedUserId);
+                  if (user) void handleDelete(user);
                   setDetailsOpen(false);
                 }}
               >
                 Delete Manager
-              </Button>
+              </button>
               <Button
                 type="primary"
                 className="btn-primary"

@@ -6,28 +6,46 @@ import { useCallback, useEffect, useState } from "react";
 import { Modal, message } from "antd";
 
 import { FormModalShell } from "@/components/form-modal-shell";
-import {
-  getCategoriesByManager,
-  getProductDetails,
-  updateProductByManager,
-  deactivateProductByAdmin,
-  type ManagerCategory,
-  type ManagerProduct,
-} from "@/lib/auth-service";
 import { useAppSelector } from "@/redux/hooks";
-import { useUpdateProductMutation } from "@/redux/features/product/productApi";
+import {
+  useGetAllCategoriesQuery,
+} from "@/redux/features/category/categoryApi";
+import {
+  useGetProductDetailsQuery,
+  useUpdateProductMutation,
+  useDeactivateProductMutation,
+} from "@/redux/features/product/productApi";
 
 export default function ProductDetailPage() {
   const router = useRouter();
   const params = useParams();
   const productId = params?.id as string;
 
-  const accessToken = useAppSelector((state) => state.auth.access_token);
   const userRole = useAppSelector((state) => state.auth.user?.role);
 
-  const [categories, setCategories] = useState<ManagerCategory[]>([]);
-  const [productData, setProductData] = useState<ManagerProduct | null>(null);
-  const [initialData, setInitialData] = useState<ManagerProduct | null>(null);
+  // RTK Query — fetch product and all categories in parallel
+  const { data: productRes, isLoading: productLoading, error: productError } = useGetProductDetailsQuery(productId, {
+    skip: !productId,
+  });
+  const { data: categoryRes } = useGetAllCategoriesQuery(
+    userRole === "ADMIN" ? { includeBanned: true } : {}
+  );
+
+  const productData = productRes?.data ?? null;
+  const allCategories = Array.isArray(categoryRes?.data) ? categoryRes.data : [];
+
+  // Build the category list: active ones + any banned one that is the current product's category
+  const categories = (() => {
+    const active = allCategories.filter((c: any) => c.isActive !== false);
+    if (
+      productData?.categoryId &&
+      !active.find((c: any) => c.id === productData.categoryId)
+    ) {
+      const missing = allCategories.find((c: any) => c.id === productData.categoryId);
+      if (missing) return [...active, missing];
+    }
+    return active;
+  })();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -39,60 +57,27 @@ export default function ProductDetailPage() {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
   const [messageApi, contextHolder] = message.useMessage();
 
-  const loadData = useCallback(async () => {
-    if (!accessToken || !productId) return;
-
-    try {
-      setLoadingData(true);
-      const [cats, foundProduct] = await Promise.all([
-        getCategoriesByManager(accessToken),
-        getProductDetails(accessToken, productId),
-      ]);
-
-      const activeCats = cats.filter((cat) => cat.isActive !== false);
-      setCategories(activeCats);
-
-      if (!foundProduct) {
-        setError("Product not found.");
-        return;
-      }
-
-      setProductData(foundProduct);
-      setInitialData(foundProduct);
-      setFormData({
-        name: foundProduct.name,
-        categoryId: foundProduct.categoryId,
-        price: foundProduct.price.toString(),
-        stockQuantity: foundProduct.stockQuantity.toString(),
-        minStockThreshold: foundProduct.minStockThreshold.toString(),
-        status: foundProduct.status,
-      });
-      
-      // If product category is banned/inactive, we might still want to show it in the list so the dropdown works
-      if (foundProduct.categoryId && !activeCats.find(c => c.id === foundProduct.categoryId)) {
-        const missingCat = cats.find(c => c.id === foundProduct.categoryId);
-        if (missingCat) {
-          setCategories(prev => [...prev, missingCat]);
-        }
-      }
-
-      setError("");
-    } catch (err) {
-      setError("Failed to load product details.");
-    } finally {
-      setLoadingData(false);
-    }
-  }, [accessToken, productId]);
-
+  // Sync form when product data loads
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    if (productData) {
+      setFormData({
+        name: productData.name,
+        categoryId: productData.categoryId,
+        price: productData.price.toString(),
+        stockQuantity: productData.stockQuantity.toString(),
+        minStockThreshold: productData.minStockThreshold.toString(),
+        status: productData.status,
+      });
+    }
+  }, [productData]);
+
+  const loadingData = productLoading;
 
   const [updateProduct] = useUpdateProductMutation();
+  const [deactivateProduct] = useDeactivateProductMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,8 +94,6 @@ export default function ProductDetailPage() {
     setIsLoading(true);
 
     try {
-      if (!accessToken) throw new Error("Missing auth token. Please login again.");
-
       await updateProduct({
         productId,
         data: {
@@ -134,24 +117,20 @@ export default function ProductDetailPage() {
 
   const handleRestrict = () => {
     Modal.confirm({
-      title: "Restrict Product",
-      content: "Are you sure you want to restrict this product? It will no longer be available for ordering.",
-      okText: "Yes, Restrict",
+      title: "Deactivate Product",
+      content: "Are you sure you want to deactivate this product? It will no longer be available for ordering.",
+      okText: "Yes, Deactivate",
       okType: "danger",
       cancelText: "Cancel",
       onOk: async () => {
-        if (!accessToken || !productId) return;
+        if (!productId) return;
         setIsLoading(true);
         try {
-          // You could use a specific endpoint, but PATCHing isActive often works. If not, use backend fallback or standard react fetch.
-          // Since we want RTK invalidations, let's use the mutation with isActive: false
-          await updateProduct({ productId, data: { isActive: false, status: "INACTIVE" } }).unwrap();
-          messageApi.success("Product restricted.");
-          if (productData) {
-            setProductData({ ...productData, isActive: false });
-          }
-        } catch (err) {
-          messageApi.error("Failed to restrict product.");
+          await deactivateProduct(productId).unwrap();
+          messageApi.success("Product deactivated.");
+          router.push("/dashboard/products");
+        } catch (err: any) {
+          messageApi.error(err?.data?.message || "Failed to deactivate product.");
         } finally {
           setIsLoading(false);
         }
@@ -244,7 +223,7 @@ export default function ProductDetailPage() {
                       className="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200 hover:border-slate-300 rounded-xl text-slate-900 transition-all focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:bg-slate-100 disabled:text-slate-500"
                     >
                       <option value="" disabled>Select a Category</option>
-                      {categories.map((cat) => (
+                      {categories.map((cat: any) => (
                         <option key={cat.id} value={cat.id}>
                           {cat.name} {cat.isActive === false ? "(Banned)" : ""}
                         </option>
@@ -311,7 +290,7 @@ export default function ProductDetailPage() {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 mb-1">Original Name</p>
-                    <p className="text-sm text-slate-700 font-medium">{initialData?.name || "-"}</p>
+                    <p className="text-sm text-slate-700 font-medium">{productData?.name || "-"}</p>
                   </div>
                    <div>
                     <p className="text-xs text-slate-500 mb-1">Category</p>
@@ -325,11 +304,11 @@ export default function ProductDetailPage() {
                     <>
                       <div>
                         <p className="text-xs text-slate-500 mb-1">Price</p>
-                        <p className="text-sm text-slate-700 font-medium">${Number(initialData?.price || 0).toFixed(2)}</p>
+                        <p className="text-sm text-slate-700 font-medium">${Number(productData?.price || 0).toFixed(2)}</p>
                       </div>
                       <div>
                         <p className="text-xs text-slate-500 mb-1">Stock / Threshold</p>
-                        <p className="text-sm text-slate-700 font-medium">{initialData?.stockQuantity || 0} / {initialData?.minStockThreshold || 0}</p>
+                        <p className="text-sm text-slate-700 font-medium">{productData?.stockQuantity || 0} / {productData?.minStockThreshold || 0}</p>
                       </div>
                     </>
                   )}

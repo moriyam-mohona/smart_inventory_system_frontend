@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-import { getSession } from "@/lib/session-store";
+import { useAppSelector } from "@/redux/hooks";
+import { selectCurrentUser } from "@/redux/features/auth/authSlice";
 import type { UserRole } from "@/types/inventory";
 
 interface RoleVisibilityProps {
@@ -11,11 +10,8 @@ interface RoleVisibilityProps {
 }
 
 export function RoleVisibility({ roles, children }: RoleVisibilityProps) {
-  const [role, setRole] = useState<UserRole | null>(null);
-
-  useEffect(() => {
-    setRole(getSession()?.role ?? null);
-  }, []);
+  const user = useAppSelector(selectCurrentUser);
+  const role = user?.role ?? null;
 
   if (!role || !roles.includes(role)) {
     return null;

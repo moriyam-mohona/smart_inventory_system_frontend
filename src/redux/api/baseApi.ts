@@ -40,6 +40,7 @@ const baseQueryWithRefreshToken: BaseQueryFn<
   let result = await baseQuery(args, api, extraOptions);
 
   // Handle Unauthorized
+  // Only attempt refresh on 401 Unauthorized, NOT 403 Forbidden (role violation)
   if (result.error?.status === 401) {
     try {
       const state = api.getState() as RootState;
@@ -116,16 +117,12 @@ const baseQueryWithRefreshToken: BaseQueryFn<
 
 export const apiTags = [
   "user",
-  "donation",
-  "scholarship",
-  "contact",
-  "event",
   "order",
   "product",
   "category",
   "activityLog",
   "restock",
-  "analytics"
+  "analytics",
 ] as const;
 
 export type ApiTagTypes = (typeof apiTags)[number];

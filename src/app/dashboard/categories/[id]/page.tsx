@@ -6,64 +6,58 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Modal, message } from "antd";
 
 import { FormModalShell } from "@/components/form-modal-shell";
-import {
-  banCategoryByAdmin,
-  deleteCategoryByManager,
-  getCategoryDetails,
-  updateCategoryByManager,
-} from "@/lib/auth-service";
 import { useAppSelector } from "@/redux/hooks";
+import {
+  useGetCategoryDetailsQuery,
+  useUpdateCategoryMutation,
+  useBanCategoryMutation,
+  useDeleteCategoryMutation,
+} from "@/redux/features/category/categoryApi";
 
 export default function CategoryDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const accessToken = useAppSelector((state) => state.auth.access_token);
   const userRole = useAppSelector((state) => state.auth.user?.role);
 
+  const categoryId = typeof params?.id === "string" ? params.id : "";
   const [categoryName, setCategoryName] = useState("");
-  const [initialCategoryName, setInitialCategoryName] = useState("");
-  const [isActive, setIsActive] = useState(true);
-  const [details, setDetails] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingCategory, setLoadingCategory] = useState(false);
-  const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [error, setError] = useState("");
   const [messageApi, contextHolder] = message.useMessage();
 
-  const categoryId = useMemo(
-    () => (typeof params?.id === "string" ? params.id : ""),
-    [params?.id],
-  );
+  // RTK Query hooks
+  const { data: categoryData, isLoading: loadingCategory, error: loadError } = useGetCategoryDetailsQuery(categoryId, {
+    skip: !categoryId,
+  });
+  const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
+  const [banCategory, { isLoading: isBanning }] = useBanCategoryMutation();
+  const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
 
-  const loadCategory = useCallback(async () => {
-    if (!accessToken || !categoryId) {
-      return;
-    }
+  const details = categoryData?.data;
+  const isActive = details?.isActive !== false;
+  const initialCategoryName = details?.name || "";
 
-    try {
-      setLoadingCategory(true);
-      const details = await getCategoryDetails(accessToken, categoryId);
-
-      setCategoryName(details.name);
-      setInitialCategoryName(details.name);
-      setIsActive(details.isActive !== false);
-      setDetails(details);
-      setError("");
-    } catch (err) {
-      const text =
-        err instanceof Error ? err.message : "Failed to load category.";
-      setError(text);
-    } finally {
-      setLoadingCategory(false);
-    }
-  }, [accessToken, categoryId, userRole]);
-
+  // Update local name state when remote data loads
   useEffect(() => {
-    void loadCategory();
-  }, [loadCategory]);
+    if (details?.name) {
+      setCategoryName(details.name);
+    }
+  }, [details?.name]);
+
+  // Handle errors from the fetch query
+  useEffect(() => {
+    if (loadError) {
+      const text = (loadError as any)?.data?.message || "Failed to load category details.";
+      setError(text);
+    }
+  }, [loadError]);
+
+  const isLoading = isUpdating || isBanning || isDeleting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (userRole === "ADMIN") return;
+    
     setError("");
     setSuccessMessage("");
 
@@ -72,28 +66,17 @@ export default function CategoryDetailPage() {
       return;
     }
 
-    if (!accessToken || !categoryId) {
-      setError("Missing auth token. Please login again.");
-      return;
-    }
-
-    setIsLoading(true);
-
     try {
-      await updateCategoryByManager(accessToken, categoryId, {
-        name: categoryName.trim(),
-      });
-      setInitialCategoryName(categoryName.trim());
+      await updateCategory({
+        categoryId,
+        data: { name: categoryName.trim() },
+      }).unwrap();
+      
       setSuccessMessage("Category updated successfully!");
       messageApi.success("Category updated.");
-    } catch (err) {
-      const text =
-        err instanceof Error
-          ? err.message
-          : "Failed to update category. Please try again.";
+    } catch (err: any) {
+      const text = err?.data?.message || err?.message || "Failed to update category.";
       setError(text);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -105,27 +88,12 @@ export default function CategoryDetailPage() {
       okType: "danger",
       cancelText: "Cancel",
       onOk: async () => {
-        if (!accessToken || !categoryId) {
-          setError("Missing auth token. Please login again.");
-          return;
-        }
-
-        setIsLoading(true);
-        setError("");
-        setSuccessMessage("");
-
         try {
-          await banCategoryByAdmin(accessToken, categoryId);
+          await banCategory(categoryId).unwrap();
           messageApi.success("Category banned.");
-          setIsActive(false);
-        } catch (err) {
-          const text =
-            err instanceof Error
-              ? err.message
-              : "Failed to ban category. Please try again.";
+        } catch (err: any) {
+          const text = err?.data?.message || err?.message || "Failed to ban category.";
           setError(text);
-        } finally {
-          setIsLoading(false);
         }
       },
     });
@@ -139,26 +107,13 @@ export default function CategoryDetailPage() {
       okType: "danger",
       cancelText: "Cancel",
       onOk: async () => {
-        if (!accessToken || !categoryId) {
-          setError("Missing auth token. Please login again.");
-          return;
-        }
-
-        setIsLoading(true);
-        setError("");
-        setSuccessMessage("");
-
         try {
-          await deleteCategoryByManager(accessToken, categoryId);
+          await deleteCategory(categoryId).unwrap();
           messageApi.success("Category deleted.");
           router.push("/dashboard/categories");
-        } catch (err) {
-          const text =
-            err instanceof Error
-              ? err.message
-              : "Failed to delete category. It might still contain products.";
+        } catch (err: any) {
+          const text = err?.data?.message || err?.message || "Failed to delete category.";
           setError(text);
-          setIsLoading(false);
         }
       },
     });

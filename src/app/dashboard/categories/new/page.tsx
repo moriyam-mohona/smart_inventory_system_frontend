@@ -6,16 +6,16 @@ import { useState, useEffect } from "react";
 import { message } from "antd";
 
 import { FormModalShell } from "@/components/form-modal-shell";
-import { createCategoryByManager } from "@/lib/auth-service";
 import { useAppSelector } from "@/redux/hooks";
+import { useCreateCategoryMutation } from "@/redux/features/category/categoryApi";
 
 export default function NewCategoryPage() {
   const router = useRouter();
-  const accessToken = useAppSelector((state) => state.auth.access_token);
   const [categoryName, setCategoryName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [messageApi, contextHolder] = message.useMessage();
+
+  const [createCategory, { isLoading }] = useCreateCategoryMutation();
 
   const userRole = useAppSelector((state) => state.auth.user?.role);
   useEffect(() => {
@@ -34,26 +34,16 @@ export default function NewCategoryPage() {
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      if (!accessToken) {
-        throw new Error("Missing auth token. Please login again.");
-      }
-
-      await createCategoryByManager(accessToken, {
+      await createCategory({
         name: categoryName.trim(),
-      });
-      messageApi.success("Category created.");
+      }).unwrap();
+
+      messageApi.success("Category created successfully.");
       router.push("/dashboard/categories");
-    } catch (err) {
-      const text =
-        err instanceof Error
-          ? err.message
-          : "Failed to create category. Please try again.";
+    } catch (err: any) {
+      const text = err?.data?.message || err?.message || "Failed to create category.";
       setError(text);
-    } finally {
-      setIsLoading(false);
     }
   };
 

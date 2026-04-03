@@ -2,17 +2,19 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getSession } from "@/lib/session-store";
+import { useAppSelector } from "@/redux/hooks";
+import { selectCurrentToken, selectCurrentUser } from "@/redux/features/auth/authSlice";
 
 export default function SessionRedirect() {
   const router = useRouter();
+  const token = useAppSelector(selectCurrentToken);
+  const user = useAppSelector(selectCurrentUser);
 
   useEffect(() => {
-    const session = getSession();
-    if (session) {
+    if (token && user) {
       router.push("/dashboard");
     }
-  }, [router]);
+  }, [token, user, router]);
 
   return null;
 }
