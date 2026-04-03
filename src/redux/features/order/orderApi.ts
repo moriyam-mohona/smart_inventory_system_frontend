@@ -10,7 +10,7 @@ const orderApi = baseApi.injectEndpoints({
         method: "POST",
         body: orderData,
       }),
-      invalidatesTags: ["order", "product"],
+      invalidatesTags: ["order", "product", "restock"],
     }),
 
     // Get all orders with filtering and pagination
@@ -57,6 +57,7 @@ const orderApi = baseApi.injectEndpoints({
         { type: "order", id: arg },
         "order",
         "product", // Cancelling restores stock, so products are invalidated
+        "restock", // Restoring stock might resolve restock queue items
       ],
     }),
 
@@ -80,6 +81,7 @@ const orderApi = baseApi.injectEndpoints({
         { type: "order", id: arg.orderId },
         "order",
         "product",
+        "restock",
       ],
     }),
 

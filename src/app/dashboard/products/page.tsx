@@ -1,36 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getProductsList, ManagerProduct } from "@/lib/auth-service";
+import { useGetAllProductsQuery } from "@/redux/features/product/productApi";
 import { useAppSelector } from "@/redux/hooks";
 import { Spin } from "antd";
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<ManagerProduct[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const { access_token: accessToken, user } = useAppSelector((state) => state.auth);
+  const { data: response, isLoading, error: queryError } = useGetAllProductsQuery({});
+  const products = response?.data || response?.items || response || [];
+  
+  const user = useAppSelector((state) => state.auth.user);
   const userRole = user?.role;
-
-  useEffect(() => {
-    async function loadProducts() {
-      if (!accessToken) return;
-      try {
-        setIsLoading(true);
-        const data = await getProductsList(accessToken);
-        setProducts(data);
-        setError("");
-      } catch (err: unknown) {
-        if (err instanceof Error) setError(err.message);
-        else setError("Failed to load products");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadProducts();
-  }, [accessToken]);
+  const error = queryError ? "Failed to load products" : "";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-slate-50">
@@ -122,8 +103,8 @@ export default function ProductsPage() {
         </div>
       ) : products.length > 0 ? (
         <div className="grid gap-4">
-          {products.map((product) => (
-            <Link key={product.id} href={`/dashboard/products/${product.id}`}>
+          {products.map((product: any) => (
+            <Link key={product.id || product._id} href={`/dashboard/products/${product.id || product._id}`}>
               <div className="group bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-purple-300 transition-all cursor-pointer overflow-hidden relative">
                 {/* Background accent */}
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />

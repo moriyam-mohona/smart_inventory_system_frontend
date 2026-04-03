@@ -31,7 +31,7 @@ const productApi = baseApi.injectEndpoints({
         method: "POST",
         body: productData,
       }),
-      invalidatesTags: ["product"],
+      invalidatesTags: ["product", "restock"],
     }),
 
     // Update product
@@ -44,6 +44,7 @@ const productApi = baseApi.injectEndpoints({
       invalidatesTags: (result, error, arg) => [
         { type: "product", id: arg.productId },
         "product",
+        "restock",
       ],
     }),
   }),

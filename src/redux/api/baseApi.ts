@@ -79,7 +79,7 @@ const baseQueryWithRefreshToken: BaseQueryFn<
         api.dispatch(
           setUser({
             user,
-            access_token: data?.data?.token ?? "",
+            access_token: data?.data?.accessToken ?? "",
             refresh_token: refreshToken,
           }),
         );
@@ -122,7 +122,9 @@ export const apiTags = [
   "event",
   "order",
   "product",
-  "category"
+  "category",
+  "activityLog",
+  "restock"
 ] as const;
 
 export type ApiTagTypes = (typeof apiTags)[number];
