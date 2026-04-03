@@ -3,14 +3,19 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { message } from "antd";
 
 import { FormModalShell } from "@/components/form-modal-shell";
+import { createCategoryByManager } from "@/lib/auth-service";
+import { useAppSelector } from "@/redux/hooks";
 
 export default function NewCategoryPage() {
   const router = useRouter();
+  const accessToken = useAppSelector((state) => state.auth.access_token);
   const [categoryName, setCategoryName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [messageApi, contextHolder] = message.useMessage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,11 +29,21 @@ export default function NewCategoryPage() {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      if (!accessToken) {
+        throw new Error("Missing auth token. Please login again.");
+      }
+
+      await createCategoryByManager(accessToken, {
+        name: categoryName.trim(),
+      });
+      messageApi.success("Category created.");
       router.push("/dashboard/categories");
-    } catch (_err) {
-      setError("Failed to create category. Please try again.");
+    } catch (err) {
+      const text =
+        err instanceof Error
+          ? err.message
+          : "Failed to create category. Please try again.";
+      setError(text);
     } finally {
       setIsLoading(false);
     }
@@ -36,6 +51,7 @@ export default function NewCategoryPage() {
 
   return (
     <FormModalShell closeHref="/dashboard/categories">
+      {contextHolder}
       <div className="space-y-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-8 text-sm">

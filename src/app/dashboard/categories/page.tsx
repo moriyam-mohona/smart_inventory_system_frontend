@@ -1,13 +1,46 @@
+"use client";
+
 import Link from "next/link";
-import { getCategories } from "@/lib/inventory-service";
+import { useCallback, useEffect, useState } from "react";
+import { message } from "antd";
 
-export const revalidate = 120;
+import {
+  getCategoriesByManager,
+  type ManagerCategory,
+} from "@/lib/auth-service";
+import { useAppSelector } from "@/redux/hooks";
 
-export default async function CategoriesPage() {
-  const categories = await getCategories();
+export default function CategoriesPage() {
+  const accessToken = useAppSelector((state) => state.auth.access_token);
+  const [categories, setCategories] = useState<ManagerCategory[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const loadCategories = useCallback(async () => {
+    if (!accessToken) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const rows = await getCategoriesByManager(accessToken);
+      setCategories(rows);
+    } catch (error) {
+      const text =
+        error instanceof Error ? error.message : "Failed to load categories.";
+      messageApi.error(text);
+    } finally {
+      setLoading(false);
+    }
+  }, [accessToken, messageApi]);
+
+  useEffect(() => {
+    void loadCategories();
+  }, [loadCategories]);
 
   return (
     <div>
+      {contextHolder}
       {/* Header Section */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
@@ -46,10 +79,14 @@ export default async function CategoriesPage() {
       </div>
 
       {/* Content Section */}
-      {categories.length > 0 ? (
+      {loading ? (
+        <div className="card p-10 text-center text-slate-500">
+          Loading categories...
+        </div>
+      ) : categories.length > 0 ? (
         <div className="grid gap-4">
           {categories.map(
-            (cat: { id: string; name: string; createdAt: string }) => (
+            (cat: { id: string; name: string; createdAt?: string }) => (
               <Link key={cat.id} href={`/dashboard/categories/${cat.id}`}>
                 <div className="card card-hover p-5 group overflow-hidden relative">
                   {/* Background accent */}
@@ -74,11 +111,16 @@ export default async function CategoriesPage() {
                         </h3>
                         <p className="text-xs text-slate-500">
                           Created on{" "}
-                          {new Date(cat.createdAt).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}
+                          {cat.createdAt
+                            ? new Date(cat.createdAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                              )
+                            : "-"}
                         </p>
                       </div>
                     </div>

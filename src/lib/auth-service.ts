@@ -41,6 +41,22 @@ export type ManagerFullDetails = {
   [key: string]: unknown;
 };
 
+export type ManagerCategory = {
+  id: string;
+  name: string;
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: unknown;
+};
+
+export type CreateManagerProductPayload = {
+  name: string;
+  categoryId: string;
+  price: number;
+  stockQuantity: number;
+  minStockThreshold: number;
+};
+
 function extractApiErrorMessage(
   data: ApiErrorResponse,
   fallback: string,
@@ -71,6 +87,30 @@ async function parseApiResponse(response: Response) {
     );
   }
   return data;
+}
+
+async function requestWithFallback(
+  endpoints: string[],
+  init: RequestInit,
+): Promise<Response> {
+  let lastResponse: Response | null = null;
+
+  for (const endpoint of endpoints) {
+    const response = await fetch(`${API_URL}${endpoint}`, init);
+    lastResponse = response;
+
+    if (response.status !== 404) {
+      return response;
+    }
+  }
+
+  return (
+    lastResponse ??
+    new Response(null, {
+      status: 404,
+      statusText: "Not Found",
+    })
+  );
 }
 
 function authHeaders(accessToken: string) {
@@ -445,4 +485,133 @@ export async function getManagerDetailsByAdmin(
 
   const data = await parseApiResponse(response);
   return ((data as { data?: unknown }).data ?? {}) as ManagerFullDetails;
+}
+
+function normalizeCategory(item: Record<string, unknown>): ManagerCategory {
+  const rawId =
+    typeof item.id === "string"
+      ? item.id
+      : typeof item._id === "string"
+        ? item._id
+        : "";
+
+  return {
+    ...item,
+    id: rawId,
+    name: typeof item.name === "string" ? item.name : "Unnamed Category",
+    createdAt: typeof item.createdAt === "string" ? item.createdAt : undefined,
+    updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : undefined,
+  };
+}
+
+export async function getCategoriesByManager(
+  accessToken: string,
+): Promise<ManagerCategory[]> {
+  const response = await fetch(`${API_URL}/categories`, {
+    method: "GET",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
+
+  const data = await parseApiResponse(response);
+  const payload = (data as { data?: unknown }).data;
+
+  if (Array.isArray(payload)) {
+    return payload
+      .filter((item): item is Record<string, unknown> => !!item)
+      .map(normalizeCategory)
+      .filter((item) => item.id);
+  }
+
+  if (
+    payload &&
+    typeof payload === "object" &&
+    Array.isArray((payload as { categories?: unknown[] }).categories)
+  ) {
+    return (payload as { categories: unknown[] }).categories
+      .filter((item): item is Record<string, unknown> => !!item)
+      .map(normalizeCategory)
+      .filter((item) => item.id);
+  }
+
+  return [];
+}
+
+export async function createCategoryByManager(
+  accessToken: string,
+  payload: { name: string },
+): Promise<ManagerCategory> {
+  const response = await fetch(`${API_URL}/categories`, {
+    method: "POST",
+    headers: authHeaders(accessToken),
+    body: JSON.stringify(payload),
+    credentials: "include",
+  });
+
+  const data = await parseApiResponse(response);
+  const category = ((data as { data?: unknown }).data ?? {}) as Record<
+    string,
+    unknown
+  >;
+  return normalizeCategory(category);
+}
+
+export async function updateCategoryByManager(
+  accessToken: string,
+  categoryId: string,
+  payload: { name: string },
+): Promise<ManagerCategory> {
+  const response = await fetch(`${API_URL}/categories/${categoryId}`, {
+    method: "PATCH",
+    headers: authHeaders(accessToken),
+    body: JSON.stringify(payload),
+    credentials: "include",
+  });
+
+  const data = await parseApiResponse(response);
+  const category = ((data as { data?: unknown }).data ?? {}) as Record<
+    string,
+    unknown
+  >;
+  return normalizeCategory(category);
+}
+
+export async function deleteCategoryByManager(
+  accessToken: string,
+  categoryId: string,
+): Promise<void> {
+  const response = await fetch(`${API_URL}/categories/${categoryId}`, {
+    method: "DELETE",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
+
+  await parseApiResponse(response);
+}
+
+export async function banCategoryByAdmin(
+  accessToken: string,
+  categoryId: string,
+): Promise<void> {
+  const response = await fetch(`${API_URL}/categories/${categoryId}/ban`, {
+    method: "PATCH",
+    headers: authHeaders(accessToken),
+    credentials: "include",
+  });
+
+  await parseApiResponse(response);
+}
+
+export async function createProductByManager(
+  accessToken: string,
+  payload: CreateManagerProductPayload,
+): Promise<void> {
+  const response = await requestWithFallback(["/products", "/product"], {
+    method: "POST",
+    headers: authHeaders(accessToken),
+    body: JSON.stringify(payload),
+    credentials: "include",
+  });
+
+  await parseApiResponse(response);
 }

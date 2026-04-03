@@ -21,6 +21,7 @@ export const navigationByRole: Record<
   ],
   MANAGER: [
     { label: "Dashboard", href: "/dashboard", icon: "📊" },
+    { label: "Manager Workspace", href: "/dashboard/manager", icon: "🛠️" },
     { label: "Products", href: "/dashboard/products", icon: "📦" },
     { label: "Orders", href: "/dashboard/orders", icon: "📋" },
     { label: "Restock Queue", href: "/dashboard/low-stock", icon: "⚠️" },
@@ -34,7 +35,11 @@ const adminOnlyPrefixes = [
   "/dashboard/analytics",
 ];
 
-const managerOnlyPrefixes = ["/dashboard/low-stock", "/dashboard/orders/new"];
+const managerOnlyPrefixes = [
+  "/dashboard/manager",
+  "/dashboard/low-stock",
+  "/dashboard/orders/new",
+];
 
 export function normalizeRole(role?: UserRole | null): AppRole {
   return role === "ADMIN" ? "ADMIN" : "MANAGER";

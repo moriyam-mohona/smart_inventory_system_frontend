@@ -1,21 +1,66 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { message } from "antd";
 
 import { FormModalShell } from "@/components/form-modal-shell";
+import {
+  banCategoryByAdmin,
+  getCategoriesByManager,
+  updateCategoryByManager,
+} from "@/lib/auth-service";
+import { useAppSelector } from "@/redux/hooks";
 
-interface Params {
-  id: string;
-}
-
-function EditCategoryContent() {
+export default function CategoryDetailPage() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const accessToken = useAppSelector((state) => state.auth.access_token);
+
   const [categoryName, setCategoryName] = useState("");
+  const [initialCategoryName, setInitialCategoryName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingCategory, setLoadingCategory] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const categoryId = useMemo(
+    () => (typeof params?.id === "string" ? params.id : ""),
+    [params?.id],
+  );
+
+  const loadCategory = useCallback(async () => {
+    if (!accessToken || !categoryId) {
+      return;
+    }
+
+    try {
+      setLoadingCategory(true);
+      const categories = await getCategoriesByManager(accessToken);
+      const found = categories.find((item) => item.id === categoryId);
+
+      if (!found) {
+        setError("Category not found.");
+        return;
+      }
+
+      setCategoryName(found.name);
+      setInitialCategoryName(found.name);
+      setError("");
+    } catch (err) {
+      const text =
+        err instanceof Error ? err.message : "Failed to load category.";
+      setError(text);
+    } finally {
+      setLoadingCategory(false);
+    }
+  }, [accessToken, categoryId]);
+
+  useEffect(() => {
+    void loadCategory();
+  }, [loadCategory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,46 +72,67 @@ function EditCategoryContent() {
       return;
     }
 
+    if (!accessToken || !categoryId) {
+      setError("Missing auth token. Please login again.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await updateCategoryByManager(accessToken, categoryId, {
+        name: categoryName.trim(),
+      });
+      setInitialCategoryName(categoryName.trim());
       setSuccessMessage("Category updated successfully!");
-      setTimeout(() => {
-        router.push("/dashboard/categories");
-      }, 1500);
-    } catch (_err) {
-      setError("Failed to update category. Please try again.");
+      messageApi.success("Category updated.");
+    } catch (err) {
+      const text =
+        err instanceof Error
+          ? err.message
+          : "Failed to update category. Please try again.";
+      setError(text);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDelete = async () => {
+  const handleBan = async () => {
     if (
       !confirm(
-        "Are you sure you want to delete this category? This action cannot be undone.",
+        "Ban this category? This is an admin-only action and will disable this category.",
       )
     ) {
       return;
     }
 
+    if (!accessToken || !categoryId) {
+      setError("Missing auth token. Please login again.");
+      return;
+    }
+
     setIsLoading(true);
+    setError("");
+    setSuccessMessage("");
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await banCategoryByAdmin(accessToken, categoryId);
+      messageApi.success("Category banned.");
       router.push("/dashboard/categories");
-    } catch (_err) {
-      setError("Failed to delete category. Please try again.");
+    } catch (err) {
+      const text =
+        err instanceof Error
+          ? err.message
+          : "Failed to ban category. Please try again.";
+      setError(text);
       setIsLoading(false);
     }
   };
 
   return (
     <FormModalShell closeHref="/dashboard/categories">
+      {contextHolder}
       <div className="space-y-8">
-        {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-8 text-sm">
           <Link
             href="/dashboard/categories"
@@ -88,7 +154,6 @@ function EditCategoryContent() {
           <span className="text-slate-600">Edit Category</span>
         </div>
 
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -105,17 +170,15 @@ function EditCategoryContent() {
                 Edit Category
               </h1>
               <p className="text-sm text-slate-500">
-                Update category information
+                Update category or ban it as admin.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Form Card */}
         <div className="max-w-2xl">
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
             <form onSubmit={handleSubmit} className="p-8">
-              {/* Error Message */}
               {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
                   <svg
@@ -133,7 +196,6 @@ function EditCategoryContent() {
                 </div>
               )}
 
-              {/* Success Message */}
               {successMessage && (
                 <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
                   <svg
@@ -153,7 +215,6 @@ function EditCategoryContent() {
                 </div>
               )}
 
-              {/* Input Group */}
               <div className="mb-8">
                 <label
                   htmlFor="categoryName"
@@ -168,7 +229,7 @@ function EditCategoryContent() {
                   onChange={(e) => setCategoryName(e.target.value)}
                   placeholder="e.g., Electronics"
                   maxLength={100}
-                  disabled={isLoading}
+                  disabled={isLoading || loadingCategory}
                   className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-white text-slate-900 placeholder-slate-400 transition-all focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:bg-slate-50 disabled:text-slate-500"
                 />
                 <p className="text-xs text-slate-500 mt-2">
@@ -176,37 +237,23 @@ function EditCategoryContent() {
                 </p>
               </div>
 
-              {/* Category Info */}
               <div className="mb-8 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                <h4 className="font-semibold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                  <svg
-                    className="w-4 h-4 text-slate-600"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 100 2h2a1 1 0 100-2H7zm0 4a1 1 0 100 2h6a1 1 0 100-2H7z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                <h4 className="font-semibold text-slate-900 text-sm mb-3">
                   Category Information
                 </h4>
                 <p className="text-sm text-slate-600">
-                  This category is being used by your products. Updating the
-                  name will reflect changes across your inventory.
+                  Original name: {initialCategoryName || "-"}
                 </p>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-slate-200">
                 <button
                   type="button"
-                  onClick={handleDelete}
-                  disabled={isLoading}
-                  className="w-full sm:w-auto px-6 py-2.5 border border-red-200 text-red-700 rounded-lg font-semibold text-sm hover:bg-red-50 hover:border-red-300 transition-all focus:outline-none focus:ring-2 focus:ring-red-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleBan}
+                  disabled={isLoading || loadingCategory}
+                  className="w-full sm:w-auto px-6 py-2.5 border border-amber-200 text-amber-700 rounded-lg font-semibold text-sm hover:bg-amber-50 hover:border-amber-300 transition-all focus:outline-none focus:ring-2 focus:ring-amber-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Delete Category
+                  Ban Category
                 </button>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                   <Link
@@ -217,38 +264,15 @@ function EditCategoryContent() {
                   </Link>
                   <button
                     type="submit"
-                    disabled={isLoading || !categoryName.trim()}
+                    disabled={
+                      isLoading ||
+                      loadingCategory ||
+                      !categoryName.trim() ||
+                      categoryName.trim() === initialCategoryName
+                    }
                     className="flex-1 sm:flex-none px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 active:scale-95"
                   >
-                    {isLoading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg
-                          className="w-4 h-4 animate-spin"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4v16m8-8H4"
-                          />
-                        </svg>
-                        Saving...
-                      </span>
-                    ) : (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg
-                          className="w-4 h-4"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-                        </svg>
-                        Save Changes
-                      </span>
-                    )}
+                    {isLoading ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
               </div>
@@ -257,21 +281,5 @@ function EditCategoryContent() {
         </div>
       </div>
     </FormModalShell>
-  );
-}
-
-export default function CategoryDetailPage({
-  params,
-}: {
-  params: Promise<Params>;
-}) {
-  return (
-    <Suspense
-      fallback={
-        <div className="p-8 text-center text-slate-500">Loading...</div>
-      }
-    >
-      <EditCategoryContent />
-    </Suspense>
   );
 }
