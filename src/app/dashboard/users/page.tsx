@@ -19,6 +19,7 @@ import type { ColumnsType } from "antd/es/table";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  approveUserByAdmin,
   createManagerAccount,
   deleteUserByAdmin,
   getAllUsersAdmin,
@@ -35,6 +36,7 @@ type UserRecord = {
   email: string;
   role: string;
   createdAt: string;
+  isApproved: boolean;
   status: "ACTIVE" | "PENDING" | "RESTRICTED";
 };
 
@@ -70,6 +72,7 @@ function normalizeUser(user: AdminManagedUser): UserRecord {
       typeof user.createdAt === "string"
         ? user.createdAt
         : new Date().toISOString(),
+    isApproved: user.isApproved !== false,
     status: isRestricted ? "RESTRICTED" : isPending ? "PENDING" : "ACTIVE",
   };
 }
@@ -128,6 +131,10 @@ export default function UsersPage() {
     void loadUsers();
   }, [loadUsers]);
 
+  const refreshUsers = useCallback(async () => {
+    await loadUsers();
+  }, [loadUsers]);
+
   const openDetails = async (user: UserRecord) => {
     setSelectedUser(user);
     setDetailsOpen(true);
@@ -160,15 +167,52 @@ export default function UsersPage() {
     }
 
     try {
+      setUsers((prev) =>
+        prev.map((record) =>
+          record.id === user.id
+            ? {
+                ...record,
+                status:
+                  record.status === "RESTRICTED" ? "ACTIVE" : "RESTRICTED",
+              }
+            : record,
+        ),
+      );
       await restrictUserByAdmin(accessToken, user.id);
       messageApi.success("Manager access updated.");
-      await loadUsers();
+      await refreshUsers();
     } catch (error) {
       const text =
         error instanceof Error
           ? error.message
           : "Failed to update manager access.";
       messageApi.error(text);
+      await refreshUsers();
+    }
+  };
+
+  const handleApprove = async (user: UserRecord) => {
+    if (!accessToken) {
+      messageApi.error("Missing admin token. Please login again.");
+      return;
+    }
+
+    try {
+      setUsers((prev) =>
+        prev.map((record) =>
+          record.id === user.id
+            ? { ...record, isApproved: true, status: "ACTIVE" }
+            : record,
+        ),
+      );
+      await approveUserByAdmin(accessToken, user.id);
+      messageApi.success("Manager approved.");
+      await refreshUsers();
+    } catch (error) {
+      const text =
+        error instanceof Error ? error.message : "Failed to approve manager.";
+      messageApi.error(text);
+      await refreshUsers();
     }
   };
 
@@ -179,17 +223,19 @@ export default function UsersPage() {
     }
 
     try {
+      setUsers((prev) => prev.filter((record) => record.id !== user.id));
       await deleteUserByAdmin(accessToken, user.id);
       messageApi.success("Manager removed.");
       if (selectedUser?.id === user.id) {
         setDetailsOpen(false);
         setSelectedUser(null);
       }
-      await loadUsers();
+      await refreshUsers();
     } catch (error) {
       const text =
         error instanceof Error ? error.message : "Failed to delete manager.";
       messageApi.error(text);
+      await refreshUsers();
     }
   };
 
@@ -209,7 +255,7 @@ export default function UsersPage() {
       messageApi.success("Manager account created.");
       setCreateModalOpen(false);
       form.resetFields();
-      await loadUsers();
+      await refreshUsers();
     } catch (error) {
       const text =
         error instanceof Error ? error.message : "Failed to create manager.";
@@ -314,6 +360,21 @@ export default function UsersPage() {
       key: "actions",
       render: (_, user) => (
         <Space size={8} wrap>
+          {!user.isApproved ? (
+            <Popconfirm
+              title="Approve manager account?"
+              description="This will grant approved access for this manager."
+              okText="Approve"
+              cancelText="Cancel"
+              onConfirm={() => {
+                void handleApprove(user);
+              }}
+            >
+              <Button className="border border-emerald-200 text-emerald-700 hover:!border-emerald-400 hover:!text-emerald-700">
+                Approve Manager
+              </Button>
+            </Popconfirm>
+          ) : null}
           <Button
             className="border border-primary-200 text-primary-700 hover:!border-primary-500 hover:!text-primary-700"
             onClick={() => {
@@ -596,6 +657,17 @@ export default function UsersPage() {
             </div>
 
             <div className="flex flex-wrap justify-end gap-3">
+              {!selectedUser.isApproved ? (
+                <Button
+                  className="border border-emerald-200 text-emerald-700 hover:!border-emerald-400 hover:!text-emerald-700"
+                  onClick={() => {
+                    void handleApprove(selectedUser);
+                    setDetailsOpen(false);
+                  }}
+                >
+                  Approve Manager
+                </Button>
+              ) : null}
               <Button
                 className="border border-amber-200 text-amber-700 hover:!border-amber-400 hover:!text-amber-700"
                 onClick={() => {
