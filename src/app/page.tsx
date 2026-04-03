@@ -1,25 +1,10 @@
-"use client";
-
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import SessionRedirect from "@/components/SessionRedirect";
 
 export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    // Check if user has session, redirect to dashboard
-    const userSession =
-      typeof window !== "undefined"
-        ? localStorage.getItem("user_session")
-        : null;
-    if (userSession) {
-      router.push("/dashboard");
-    }
-  }, [router]);
-
   return (
     <main className="flex flex-col min-h-screen bg-slate-50">
+      <SessionRedirect />
       <nav className="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
         <div className="flex items-center gap-2 font-bold text-xl text-primary-700">
           <svg

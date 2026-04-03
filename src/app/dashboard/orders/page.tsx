@@ -67,8 +67,31 @@ export default function OrdersPage() {
 
       {/* Content Section */}
       {isLoading ? (
-        <div className="flex justify-center p-12">
-          <div className="w-8 h-8 border-4 border-amber-600/20 border-t-amber-600 rounded-full animate-spin"></div>
+        <div className="grid gap-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm animate-pulse">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-slate-200"></div>
+                  <div className="flex-1">
+                    <div className="h-5 bg-slate-200 rounded-md w-1/4 mb-2"></div>
+                    <div className="flex gap-3">
+                      <div className="h-4 bg-slate-200 rounded-md w-1/5"></div>
+                      <div className="h-4 bg-slate-200 rounded-md w-1/6"></div>
+                      <div className="h-4 bg-slate-200 rounded-md w-1/5"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 flex items-center gap-3">
+                  <div className="text-right">
+                    <div className="h-5 bg-slate-200 rounded-md w-16 mb-1"></div>
+                    <div className="h-5 bg-slate-200 rounded-md w-20"></div>
+                  </div>
+                  <div className="w-8 h-8 rounded-lg bg-slate-200"></div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : error ? (
         <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200">

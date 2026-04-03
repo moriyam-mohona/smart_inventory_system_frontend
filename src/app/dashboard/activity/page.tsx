@@ -1,7 +1,7 @@
 "use client";
 
 import { useGetActivityLogsQuery } from "@/redux/features/activity-log/activityLogApi";
-import { format } from "date-fns"; // Standard in many projects, but native Date is fine. We'll stick to native Date to avoid missing deps.
+
 
 export default function ActivityLogPage() {
   const { data, isLoading, error } = useGetActivityLogsQuery({});
@@ -10,8 +10,27 @@ export default function ActivityLogPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-12">
-        <div className="w-8 h-8 border-4 border-amber-600/20 border-t-amber-600 rounded-full animate-spin"></div>
+      <div>
+        <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm mb-8">
+          <div className="h-6 bg-slate-200 rounded w-40 mb-2"></div>
+          <div className="h-4 bg-slate-200 rounded w-64"></div>
+        </div>
+        <div className="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm h-64">
+          <ul className="grid gap-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <li key={i} className="flex items-start gap-4 p-4 border border-slate-100 rounded-xl animate-pulse">
+                <div className="mt-1 w-2.5 h-2.5 rounded-full bg-slate-200 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="h-4 bg-slate-200 rounded w-1/3"></div>
+                    <div className="h-3 bg-slate-200 rounded w-24"></div>
+                  </div>
+                  <div className="h-3 bg-slate-200 rounded w-1/4"></div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     );
   }

@@ -83,8 +83,26 @@ export default function CategoriesPage() {
 
       {/* Content Section */}
       {loading ? (
-        <div className="card p-10 text-center text-slate-500">
-          Loading categories...
+        <div className="grid gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="card p-5 overflow-hidden animate-pulse">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-slate-200"></div>
+                  <div className="flex-1">
+                    <div className="h-5 bg-slate-200 rounded-md w-1/4 mb-2"></div>
+                    <div className="flex items-center gap-4">
+                      <div className="h-4 bg-slate-200 rounded-md w-20"></div>
+                      <div className="h-4 bg-slate-200 rounded-md w-24"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-slate-200"></div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : categories.length > 0 ? (
         <div className="grid gap-4">

@@ -124,7 +124,8 @@ export const apiTags = [
   "product",
   "category",
   "activityLog",
-  "restock"
+  "restock",
+  "analytics"
 ] as const;
 
 export type ApiTagTypes = (typeof apiTags)[number];
