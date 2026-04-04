@@ -39,7 +39,7 @@ export function DashboardTopbar({
           </span>
           <div className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/50 backdrop-blur-md py-1.5 pl-4 pr-1.5 shadow-sm hover:bg-white/80 transition-colors">
             <div className="hidden text-right md:block">
-              <p className="text-[14px] font-bold text-slate-800 leading-tight">
+              <p className="text-[14px] font-bold text-slate-800 leading-tight m-0">
                 {userName}
               </p>
             </div>

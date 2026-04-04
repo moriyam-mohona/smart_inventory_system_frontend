@@ -149,9 +149,6 @@ function VerifyOtpContent() {
             {fieldError && (
               <p className="text-[13px] text-red-600 font-bold text-center">{fieldError}</p>
             )}
-            <p className="text-[13px] text-slate-500 font-bold text-center mt-2">
-              Demo code: <span className="font-mono text-slate-700 ml-1">123456</span>
-            </p>
           </div>
 
           <div className="pt-2">

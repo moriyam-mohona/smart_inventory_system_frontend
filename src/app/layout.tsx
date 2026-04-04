@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   description:
     "Stock Control System is a premium, glassmorphic SaaS platform designed for high-precision inventory tracking, automated order fulfillment, and real-time operational workflows.",
   keywords: "stock control system, inventory management software, order fulfillment, precise inventory, SaaS inventory",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

@@ -147,13 +147,15 @@ export default function DashboardHomePage() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  className="btn-secondary h-11 px-6 rounded-xl font-bold flex items-center shadow-xs"
-                  href="/dashboard/analytics"
-                >
-                  <span className="mr-2">📈</span>
-                  Intelligence
-                </Link>
+                {role === "ADMIN" && (
+                  <Link
+                    className="btn-secondary h-11 px-6 rounded-xl font-bold flex items-center shadow-xs"
+                    href="/dashboard/analytics"
+                  >
+                    <span className="mr-2">📈</span>
+                    Intelligence
+                  </Link>
+                )}
                 <Link
                   className="btn-primary h-11 px-6 rounded-xl font-bold flex items-center shadow-lg shadow-primary-950/10"
                   href="/dashboard/orders"
@@ -276,7 +278,7 @@ export default function DashboardHomePage() {
             { label: "Categories", path: "/dashboard/categories", icon: "📂" },
             { label: "Products", path: "/dashboard/products", icon: "📦" },
             { label: "Orders", path: "/dashboard/orders", icon: "📋" },
-            { label: "Analytics", path: "/dashboard/analytics", icon: "📈" },
+            ...(role === "ADMIN" ? [{ label: "Analytics", path: "/dashboard/analytics", icon: "📈" }] : []),
           ].map(it => (
             <Link
               key={it.path}

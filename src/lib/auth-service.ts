@@ -9,8 +9,14 @@ const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 const DEMO_CREDENTIALS: DemoCredentials = {
-  email: process.env.NEXT_PUBLIC_DEMO_EMAIL || "demo@inventory.com",
-  password: process.env.NEXT_PUBLIC_DEMO_PASSWORD || "Demo@12345",
+  manager: {
+    email: process.env.NEXT_PUBLIC_DEMO_EMAIL || "demo@inventory.com",
+    password: process.env.NEXT_PUBLIC_DEMO_PASSWORD || "Demo@12345",
+  },
+  admin: {
+    email: "demo.admin@inventory.com",
+    password: "Admin@12345",
+  },
 };
 
 type ApiErrorResponse = {

@@ -30,6 +30,6 @@ export interface AuthResult {
 }
 
 export interface DemoCredentials {
-  email: string;
-  password: string;
+  manager: LoginFormInput;
+  admin: LoginFormInput;
 }

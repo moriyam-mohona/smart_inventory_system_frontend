@@ -77,10 +77,11 @@ export default function LoginPage() {
     });
   }
 
-  function handleDemoLogin() {
-    setEmail(demo.email);
-    setPassword(demo.password);
-    setMessage("Demo credentials pre-filled. Click Sign In to continue.");
+  function handleDemoLogin(role: "manager" | "admin") {
+    const credentials = demo[role];
+    setEmail(credentials.email);
+    setPassword(credentials.password);
+    setMessage(`Demo ${role.toUpperCase()} credentials pre-filled. Click Sign In to continue.`);
   }
 
   return (
@@ -208,13 +209,27 @@ export default function LoginPage() {
                 {isPending ? "Signing in..." : "Sign in"}
               </button>
 
-              <button
-                className="btn-secondary w-full"
-                type="button"
-                onClick={handleDemoLogin}
-              >
-                Pre-fill demo credentials
-              </button>
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <div className="col-span-2">
+                  <p className="text-center text-[12px] font-black uppercase tracking-[0.15em] text-slate-400 mb-2">
+                    Quick demo login
+                  </p>
+                </div>
+                <button
+                  className="btn-secondary text-[12px] py-2.5"
+                  type="button"
+                  onClick={() => handleDemoLogin("admin")}
+                >
+                  Admin
+                </button>
+                <button
+                  className="btn-secondary text-[12px] py-2.5"
+                  type="button"
+                  onClick={() => handleDemoLogin("manager")}
+                >
+                  Manager
+                </button>
+              </div>
             </div>
           </div>
         </section>
