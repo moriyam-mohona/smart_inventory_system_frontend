@@ -102,6 +102,14 @@ const productApi = baseApi.injectEndpoints({
         "activityLog",
       ],
     }),
+    // Get low-stock products (ADMIN, MANAGER)
+    getLowStockProducts: builder.query({
+      query: () => ({
+        url: "/products/low-stock",
+        method: "GET",
+      }),
+      providesTags: ["restock", "product"],
+    }),
   }),
 });
 
@@ -112,4 +120,5 @@ export const {
   useUpdateProductMutation,
   useRestockProductMutation,
   useDeactivateProductMutation,
+  useGetLowStockProductsQuery,
 } = productApi;

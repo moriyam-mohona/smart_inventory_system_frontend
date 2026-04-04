@@ -11,11 +11,12 @@ import {
 } from "@/redux/features/category/categoryApi";
 import Swal from "sweetalert2";
 import { useState, useEffect } from "react";
-import { Modal, Form, Input, Button, message, Tag, Space, Descriptions } from "antd";
+import { Modal, Form, Input, Button, message, Tag, Space, Descriptions, Table } from "antd";
 
 export default function CategoriesPage() {
   const userRole = useAppSelector((state) => state.auth.user?.role);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
@@ -48,10 +49,20 @@ export default function CategoriesPage() {
     setIsModalOpen(true);
   };
 
+  const handleOpenDetails = (id: string) => {
+    setEditingCategoryId(id);
+    setIsDetailsModalOpen(true);
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingCategoryId(null);
     form.resetFields();
+  };
+
+  const handleCloseDetails = () => {
+    setIsDetailsModalOpen(false);
+    setEditingCategoryId(null);
   };
 
   const onFinish = async (values: { name: string }) => {
@@ -166,7 +177,7 @@ export default function CategoriesPage() {
               >
                 <div 
                   className="flex items-center gap-5 flex-1 min-w-0 cursor-pointer" 
-                  onClick={() => handleOpenModal(cat.id)}
+                  onClick={() => handleOpenDetails(cat.id)}
                 >
                   {/* Category Icon */}
                   <div
@@ -255,85 +266,238 @@ export default function CategoriesPage() {
         onCancel={handleCloseModal}
         footer={null}
         centered
-        width={560}
-        title={
-          <div className="flex items-center gap-4 py-2">
-            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${editingCategoryId ? 'from-blue-600 to-blue-400' : 'from-primary-700 to-primary-500'} text-white shadow-lg shadow-primary-900/10`}>
-               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-               </svg>
+        width={580}
+        styles={{ body: { padding: 0 } }}
+        className="inventory-ant-modal overflow-hidden"
+        title={null}
+      >
+        <div className="bg-slate-50/50 p-6 sm:p-10 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-500 ${editingCategoryId ? 'bg-gradient-to-br from-indigo-600 to-indigo-400 rotate-6 shadow-indigo-200/50' : 'bg-gradient-to-br from-primary-700 to-primary-500 -rotate-6 shadow-primary-200/50'}`}>
+              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
             </div>
             <div>
-              <div className="label-caps text-primary-700">{editingCategoryId ? 'Modify Index' : 'Definition'}</div>
-              <h3 className="mb-0 leading-tight">
-                {editingCategoryId ? 'Edit Category' : 'Create Category'}
-              </h3>
+              <p className="label-caps text-primary-700 mb-1">{editingCategoryId ? 'Catalog Management' : 'Index Definition'}</p>
+              <h2 className="mb-0 leading-tight">{editingCategoryId ? 'Update Category' : 'Create Category'}</h2>
             </div>
           </div>
-        }
-        className="inventory-ant-modal"
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFinish}
-          className="mt-6"
-        >
-          {isFetchingDetails ? (
-            <div className="py-12 text-center animate-pulse">
-               <div className="h-4 bg-slate-100 rounded w-48 mx-auto" />
-            </div>
-          ) : (
-            <>
-              <Form.Item
-                name="name"
-                label="Category Name"
-                rules={[{ required: true, message: "Required" }, { min: 2, message: "Too short" }]}
-              >
-                <Input placeholder="e.g. Health & Beauty" size="large" className="rounded-xl h-12" />
-              </Form.Item>
+          {editingCategoryId && detailsData?.data && (
+            <Tag color={detailsData.data.isActive ? 'green' : 'red'} className="m-0 rounded-full font-bold px-3 py-0.5 border-none shadow-sm">
+              {detailsData.data.isActive ? 'Active' : 'Banned'}
+            </Tag>
+          )}
+        </div>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-6">
-                 <h4 className="label-caps !text-slate-400 mb-3">System Insights</h4>
-                 {editingCategoryId && detailsData?.data ? (
-                    <div className="space-y-3">
-                       <div className="flex justify-between items-center">
-                          <span className="label-caps !text-slate-500 !tracking-wide">Associated Products</span>
-                          <span className="font-black text-slate-800">{detailsData.data._count?.products || 0}</span>
+        <div className="p-8 sm:p-10">
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            requiredMark={false}
+          >
+            {isFetchingDetails ? (
+              <div className="py-20 text-center animate-pulse space-y-4">
+                <div className="h-4 bg-slate-100 rounded-full w-48 mx-auto" />
+                <div className="h-4 bg-slate-50 rounded-full w-64 mx-auto" />
+              </div>
+            ) : (
+              <div className="space-y-8">
+                <div className="bg-slate-50/50 p-6 rounded-[28px] border border-slate-100/60">
+                   <h4 className="label-caps !text-slate-400 mb-4 flex items-center gap-2">
+                     <span className="w-1.5 h-1.5 rounded-full bg-primary-400" />
+                     Category Identity
+                   </h4>
+                   <Form.Item
+                    name="name"
+                    label="Index Designation"
+                    rules={[{ required: true, message: "Required" }]}
+                    className="m-0"
+                  >
+                    <Input 
+                      placeholder="e.g. Smart Electronics" 
+                      size="large" 
+                      className="h-14 rounded-2xl border-2 border-white shadow-sm font-bold text-lg"
+                    />
+                  </Form.Item>
+                </div>
+
+                {editingCategoryId && detailsData?.data && (
+                    <div className="bg-white rounded-[32px] p-6 border border-slate-200/60 shadow-sm flex items-center justify-between">
+                       <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-[18px] bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          </div>
+                          <div>
+                            <p className="label-caps !text-slate-400 mb-0.5">Audit Trail</p>
+                            <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
+                               <span>Created: {new Date(detailsData.data.createdAt || '').toLocaleDateString()}</span>
+                               <span className="text-slate-200">|</span>
+                               <span>Updated: {new Date(detailsData.data.updatedAt || '').toLocaleDateString()}</span>
+                            </div>
+                          </div>
                        </div>
-                       <div className="flex justify-between items-center">
-                          <span className="label-caps !text-slate-500 !tracking-wide">Visibility Status</span>
-                          <Tag color={detailsData.data.isActive ? 'green' : 'red'} className="m-0 label-caps px-2 py-0.5 rounded-full">
-                            {detailsData.data.isActive ? 'Active' : 'Banned'}
-                          </Tag>
+                       <div className="text-right">
+                          <p className="label-caps !text-slate-400 mb-0.5">Origin</p>
+                          <p className="text-xs font-black text-primary-700 uppercase tracking-widest">{detailsData.data.createdBy?.name || 'System'}</p>
                        </div>
                     </div>
-                 ) : (
-                    <p className="text-xs font-medium text-slate-500 italic">
-                      New categories are active by default. Use clear, unique names to avoid structural duplication.
-                    </p>
-                 )}
-              </div>
+                )}
 
-              <div className="flex justify-end gap-3 pt-6 border-t border-slate-100">
-                <Button 
-                  onClick={handleCloseModal} 
-                  className="h-11 px-6 font-bold text-slate-500 bg-slate-50 border-none hover:!text-slate-700"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  loading={isCreating || isUpdating}
-                  className="btn-primary h-11 px-8 font-bold"
-                >
-                  {editingCategoryId ? 'Save Changes' : 'Create Category'}
-                </Button>
+                {!editingCategoryId && (
+                   <div className="p-6 bg-primary-50/30 rounded-[28px] border border-primary-100/50 border-dashed">
+                      <p className="text-sm font-medium text-primary-700 line-clamp-3 mb-0 leading-relaxed italic">
+                        "Newly registered categories are initialized with global visibility. Ensure category names are distinct and descriptive to maintain optimal catalog hierarchy."
+                      </p>
+                   </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-4 border-t border-slate-100">
+                  <Button 
+                    onClick={handleCloseModal}
+                    className="h-14 px-8 rounded-2xl font-bold border-none bg-slate-100 text-slate-500 hover:!bg-slate-200 transition-all w-full sm:w-auto uppercase tracking-widest text-xs"
+                  >
+                    Dismiss
+                  </Button>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={isCreating || isUpdating}
+                    className="btn-primary h-14 px-12 rounded-2xl font-black text-sm shadow-xl shadow-primary-500/30 w-full sm:w-auto uppercase tracking-widest"
+                  >
+                    {editingCategoryId ? 'Apply Update' : 'Initialize Category'}
+                  </Button>
+                </div>
               </div>
-            </>
-          )}
-        </Form>
+            )}
+          </Form>
+        </div>
+      </Modal>
+      {/* Category Details Modal */}
+      <Modal
+        open={isDetailsModalOpen}
+        onCancel={handleCloseDetails}
+        footer={null}
+        centered
+        width={800}
+        styles={{ body: { padding: 0 } }}
+        className="inventory-ant-modal overflow-hidden"
+        title={null}
+      >
+        <div className="flex flex-col max-h-[90vh]">
+          {/* Header */}
+          <div className="bg-slate-50/50 p-6 sm:p-8 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-5">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center shadow-lg text-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+              <div>
+                <p className="label-caps text-primary-700 mb-0.5">Category Insights</p>
+                <h2 className="mb-0">{detailsData?.data?.name || "Loading..."}</h2>
+              </div>
+            </div>
+            {detailsData?.data && (
+              <Tag color={detailsData.data.isActive ? "green" : "red"} className="m-0 rounded-full font-bold px-4 py-1">
+                {detailsData.data.isActive ? "ACTIVE" : "BANNED"}
+              </Tag>
+            )}
+          </div>
+
+          <div className="p-6 sm:p-8 overflow-y-auto custom-scrollbar space-y-8">
+            {isFetchingDetails ? (
+              <div className="space-y-4 animate-pulse">
+                <div className="h-24 bg-slate-100 rounded-2xl" />
+                <div className="h-48 bg-slate-50 rounded-2xl" />
+              </div>
+            ) : detailsData?.data && (
+              <>
+                {/* Summary Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center">
+                    <p className="label-caps text-slate-400 mb-2">Total Products</p>
+                    <p className="text-3xl font-black text-slate-900 leading-none">{detailsData.data.summary?.totalProducts || 0}</p>
+                  </div>
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center">
+                    <p className="label-caps text-emerald-500 mb-2">Active</p>
+                    <p className="text-3xl font-black text-emerald-600 leading-none">{detailsData.data.summary?.activeProducts || 0}</p>
+                  </div>
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center">
+                    <p className="label-caps text-rose-500 mb-2">Out of Stock</p>
+                    <p className="text-3xl font-black text-rose-600 leading-none">{detailsData.data.summary?.outOfStockProducts || 0}</p>
+                  </div>
+                </div>
+
+                {/* Metadata Card */}
+                <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="label-caps !text-slate-400 mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary-400" />
+                      Administrative Data
+                    </h4>
+                    <Descriptions column={1} size="small" className="inventory-descriptions">
+                      <Descriptions.Item label="System ID"><span className="font-mono text-[10px] text-slate-400">{detailsData.data.id}</span></Descriptions.Item>
+                      <Descriptions.Item label="Created At">{new Date(detailsData.data.createdAt).toLocaleString()}</Descriptions.Item>
+                      <Descriptions.Item label="Last Updated">{new Date(detailsData.data.updatedAt).toLocaleString()}</Descriptions.Item>
+                    </Descriptions>
+                  </div>
+                  <div>
+                    <h4 className="label-caps !text-slate-400 mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      Creator Identity
+                    </h4>
+                    {detailsData.data.createdBy ? (
+                      <div className="space-y-1">
+                        <p className="font-bold text-slate-800 text-sm mb-0">{detailsData.data.createdBy.name}</p>
+                        <p className="text-xs text-slate-500 mb-1">{detailsData.data.createdBy.email}</p>
+                        <Tag color="blue" className="rounded-full text-[9px] font-black border-none px-2 m-0 bg-blue-50 text-blue-600 uppercase tracking-widest">{detailsData.data.createdBy.role}</Tag>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">System Auto-generated</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Product List Table */}
+                <div>
+                  <h4 className="label-caps !text-slate-400 mb-4 ml-2">Associated Catalog</h4>
+                  <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white">
+                    <Table
+                      dataSource={detailsData.data.products || []}
+                      pagination={false}
+                      size="small"
+                      rowKey="id"
+                      className="inventory-table"
+                      columns={[
+                        { title: 'PRODUCT NAME', dataIndex: 'name', key: 'name', render: (t: string) => <span className="font-bold text-slate-800">{t}</span> },
+                        { title: 'PRICE', dataIndex: 'price', key: 'price', align: 'right', render: (v: number) => <span className="font-medium text-slate-500">${v}</span> },
+                        { title: 'STOCK', dataIndex: 'stockQuantity', key: 'stock', align: 'center', render: (v: number, r: any) => <Tag color={v <= r.minStockThreshold ? 'red' : 'green'} className="m-0 font-bold border-none bg-slate-50 rounded-lg px-2">{v}</Tag> },
+                        { title: 'STATUS', dataIndex: 'status', key: 'status', align: 'center', render: (s: string) => <Tag color={s === 'ACTIVE' ? 'blue' : 'default'} className="m-0 label-caps px-2 py-0 border-none rounded-full">{s}</Tag> }
+                      ]}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="p-6 border-t border-slate-100 bg-white flex justify-end gap-3 sticky bottom-0">
+            <Button onClick={handleCloseDetails} className="h-10 px-6 font-bold text-slate-500 border-slate-200 rounded-xl">Dismiss</Button>
+            <Button 
+              type="primary" 
+              className="btn-primary h-10 px-6 font-bold rounded-xl"
+              onClick={() => {
+                handleCloseDetails();
+                handleOpenModal(editingCategoryId);
+              }}
+            >
+              Edit Category
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

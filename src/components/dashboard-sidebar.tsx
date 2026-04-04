@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useDispatch } from "react-redux";
 import type { UserRole } from "@/types/inventory";
 import { navigationByRole, normalizeRole } from "@/lib/role-access";
@@ -14,17 +14,14 @@ interface DashboardSidebarProps {
 
 export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const dispatch = useDispatch();
   const navItems = navigationByRole[normalizeRole(userRole)];
 
   const handleLogout = () => {
-    // 1. Clear session from store
+    // Clear session from Redux store — AuthGuard detects the cleared token
+    // and handles the redirect to /auth/login automatically
     dispatch(logout());
-    // 2. Remove from localStorage (optional if Redux Persist is configured for the key)
     localStorage.removeItem("smart_inventory_session");
-    // 3. Manually push to login (AuthGuard will also catch this)
-    router.replace("/auth/login");
   };
 
   const isActive = (href: string) => {
@@ -42,15 +39,16 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
           <div className="group flex items-center gap-4 cursor-pointer">
             <div className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-gradient-to-br from-primary-950 via-primary-800 to-primary-700 text-white shadow-[0_12px_24px_-8px_rgba(27,71,93,0.4)] border border-white/20 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
               <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 20 20">
+                <title>Stock Control System Logo</title>
                 <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 3H3z" />
               </svg>
             </div>
             <div>
               <p className="text-[20px] font-black leading-tight text-slate-900 tracking-tight mb-0">
-                SmartInv
+                StockControl
               </p>
-              <p className="label-caps !text-primary-600 mt-0.5 opacity-80">
-                Studio
+              <p className="label-caps !text-primary-600 mt-0.5 opacity-80 uppercase tracking-[0.2em] font-black">
+                System
               </p>
             </div>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Modal, Form, Input, Select, Button, Table, Tag, Badge, message, Space, Divider, Descriptions, InputNumber } from "antd";
+import { useState } from "react";
+import { Modal, Button, Tag, Table, Select, Descriptions, Divider, InputNumber, Input, message } from "antd";
 import { useAppSelector } from "@/redux/hooks";
 import {
   useGetAllOrdersQuery,
@@ -12,7 +12,6 @@ import {
 } from "@/redux/features/order/orderApi";
 import { useGetAllProductsQuery } from "@/redux/features/product/productApi";
 import { RoleVisibility } from "@/components/role-visibility";
-import Swal from "sweetalert2";
 
 export default function OrdersPage() {
   const user = useAppSelector((state) => state.auth.user);
@@ -22,9 +21,9 @@ export default function OrdersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"CREATE" | "DETAILS">("CREATE");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  
-  // Cart state for orders
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
   const [cart, setCart] = useState<any[]>([]);
 
   const { data: response, isLoading: ordersLoading } = useGetAllOrdersQuery({});
@@ -50,62 +49,81 @@ export default function OrdersPage() {
     CANCELLED: "red",
   };
 
-  const handleOpenCreateMode = () => {
+  const statusLabels: any = {
+    PENDING: "Pending",
+    CONFIRMED: "Confirmed",
+    SHIPPED: "Shipped",
+    DELIVERED: "Delivered",
+    CANCELLED: "Cancelled",
+  };
+
+  const openCreate = () => {
     setModalType("CREATE");
     setSelectedOrderId(null);
     setCustomerName("");
+    setCustomerPhone("");
+    setCustomerAddress("");
     setCart([]);
     setIsModalOpen(true);
   };
 
-  const handleOpenDetails = (id: string) => {
+  const openDetails = (id: string) => {
     setModalType("DETAILS");
     setSelectedOrderId(id);
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
+  const closeModal = () => {
     setIsModalOpen(false);
     setSelectedOrderId(null);
+    setCustomerName("");
+    setCustomerPhone("");
+    setCustomerAddress("");
     setCart([]);
   };
 
   const addToCart = (product: any) => {
-    const existing = cart.find(item => item.productId === product.id);
+    const existing = cart.find((item) => item.productId === product.id);
     if (existing) {
       if (existing.quantity >= product.stockQuantity) {
-        messageApi.warning("Exceeds availability");
+        messageApi.warning("No more stock available for this item.");
         return;
       }
-      setCart(cart.map(item => item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item));
+      setCart(cart.map((item) => item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item));
     } else {
       setCart([...cart, { productId: product.id, name: product.name, quantity: 1, unitPrice: product.price, maxStock: product.stockQuantity }]);
     }
-    messageApi.success(`${product.name} added to load`);
+    messageApi.success(`${product.name} added to order.`);
   };
 
   const updateQuantity = (productId: string, qty: number) => {
     if (qty <= 0) {
-      setCart(cart.filter(item => item.productId !== productId));
+      setCart(cart.filter((item) => item.productId !== productId));
       return;
     }
-    setCart(cart.map(item => item.productId === productId ? { ...item, quantity: qty } : item));
+    setCart(cart.map((item) => item.productId === productId ? { ...item, quantity: qty } : item));
   };
 
   const handleCreateOrder = async () => {
-    if (!customerName.trim() || cart.length === 0) {
-      messageApi.error("Target Designation & Items required");
+    if (!customerName.trim()) {
+      messageApi.error("Please enter a customer name.");
+      return;
+    }
+    if (cart.length === 0) {
+      messageApi.error("Please add at least one item to the order.");
       return;
     }
     try {
       await createOrder({
         customerName: customerName.trim(),
-        items: cart.map(i => ({ productId: i.productId, quantity: i.quantity }))
+        customerPhone: customerPhone.trim() || undefined,
+        customerAddress: customerAddress.trim() || undefined,
+        items: cart.map((i) => ({ productId: i.productId, quantity: i.quantity })),
       }).unwrap();
-      messageApi.success("Order dispatched successfully");
-      handleCloseModal();
+      messageApi.success("Order placed successfully!");
+      closeModal();
     } catch (err: any) {
-      messageApi.error(err?.data?.message || "Procurement failed");
+      messageApi.error(err?.data?.message || "Failed to place order. Please try again.");
     }
   };
 
@@ -113,378 +131,551 @@ export default function OrdersPage() {
     if (!selectedOrderId) return;
     try {
       await updateStatus({ orderId: selectedOrderId, statusData: { status } }).unwrap();
-      messageApi.success(`Status migrated to ${status}`);
+      messageApi.success(`Order status updated to ${statusLabels[status] ?? status}.`);
     } catch (err: any) {
-      messageApi.error(err?.data?.message || "Migration failed");
+      messageApi.error(err?.data?.message || "Failed to update status.");
     }
   };
 
-  const handleCancel = () => {
+  const handleCancelOrder = () => {
     if (!selectedOrderId) return;
     Modal.confirm({
-      title: "Abort Order?",
-      content: "This will terminate the transaction and return units to inventory.",
-      okText: "Abort Transaction",
+      title: "Cancel this order?",
+      content: "Cancelling will return all items back to stock. This cannot be undone.",
+      okText: "Yes, cancel order",
       okType: "danger",
+      cancelText: "Keep order",
       onOk: async () => {
         try {
           await cancelOrder(selectedOrderId).unwrap();
-          messageApi.success("Transaction aborted");
-          handleCloseModal();
+          messageApi.success("Order cancelled and stock restored.");
+          closeModal();
         } catch (err: any) {
-          messageApi.error(err?.data?.message || "Abort failed");
+          messageApi.error(err?.data?.message || "Failed to cancel order.");
         }
-      }
+      },
     });
   };
 
-  const cartTotal = cart.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+  const cartTotal = cart.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {contextHolder}
 
-      {/* Header */}
-      <div className="card-glass p-8 sm:p-10 border border-amber-100 shadow-[0_32px_64px_-16px_rgba(245,158,11,0.15)] bg-gradient-to-br from-white/95 to-amber-50/30">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-          <div>
-            <Tag color="orange" className="m-0 label-caps bg-amber-100 text-amber-700 px-3 py-0.5 rounded-full border-none">
-              Procurement Control
-            </Tag>
-            <h1 className="mt-2 leading-tight">
-              Order Logistics
-            </h1>
-            <p className="card-subtitle mt-2">
-              Oversee fulfillment cycles, customer requisitions, and transaction status.
-            </p>
-          </div>
-          {(userRole === "MANAGER" || userRole === "ADMIN") && (
-            <Button
-              type="primary"
-              className="bg-amber-600 hover:!bg-amber-700 h-14 px-10 rounded-2xl font-black text-sm! shadow-xl shadow-amber-600/20 border-none uppercase tracking-widest"
-              onClick={handleOpenCreateMode}
-            >
-              Dispatch Order
-            </Button>
-          )}
+      {/* Page Header */}
+      <div className="rounded-2xl border border-amber-100/80 bg-gradient-to-br from-white to-amber-50/40 p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p className="label-caps text-amber-700 mb-1">Order Management</p>
+          <h1 className="leading-tight mb-1">Orders</h1>
+          <p className="card-subtitle">Track, manage, and update customer orders.</p>
         </div>
+        {(userRole === "MANAGER" || userRole === "ADMIN") && (
+          <Button
+            type="primary"
+            onClick={openCreate}
+            className="btn-primary h-10 px-5 rounded-xl font-bold text-sm shadow-md shadow-amber-600/15 border-amber-700/20 bg-amber-600 hover:!bg-amber-700 shrink-0"
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+              </svg>
+              New Order
+            </span>
+          </Button>
+        )}
       </div>
 
       {/* Order List */}
-      <div className="space-y-4">
+      <div className="space-y-2.5">
         {ordersLoading ? (
-           <div className="grid gap-4">
-             {[1, 2, 3].map(i => <div key={i} className="h-28 bg-white/50 animate-pulse rounded-[32px] border border-slate-100" />)}
-           </div>
+          <div className="grid gap-2.5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 bg-white/60 animate-pulse rounded-2xl border border-slate-100" />
+            ))}
+          </div>
         ) : orders.length > 0 ? (
-          <div className="grid gap-4">
+          <div className="grid gap-2.5">
             {orders.map((order: any) => (
-              <div 
+              <div
                 key={order.id || order._id}
-                onClick={() => handleOpenDetails(order.id || order._id)}
-                className="group relative flex items-center justify-between gap-6 p-6 border border-slate-100/80 rounded-[32px] bg-white shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-amber-200/40 hover:border-amber-200 cursor-pointer"
+                onClick={() => openDetails(order.id || order._id)}
+                className="group flex items-center justify-between gap-4 px-5 py-4 border border-slate-100/80 rounded-2xl bg-white shadow-sm hover:shadow-md hover:shadow-amber-100/60 hover:border-amber-200 cursor-pointer transition-all duration-200"
               >
-                <div className="flex items-center gap-6 flex-1 min-w-0">
-                  <div className={`flex-shrink-0 w-16 h-16 rounded-3xl flex items-center justify-center transition-all duration-500 shadow-lg border ${order.status === 'CANCELLED' ? 'bg-slate-50 text-slate-300 border-slate-100' : 'bg-gradient-to-br from-amber-50 to-white text-amber-600 border-amber-100 group-hover:scale-110 shadow-amber-900/5'}`}>
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                {/* Left: icon + info */}
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${order.status === "CANCELLED" ? "bg-slate-100 text-slate-300" : "bg-amber-50 text-amber-500 group-hover:bg-amber-100"}`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-4 mb-2 flex-wrap">
-                      <h3 className="mb-0 group-hover:text-amber-700 transition-colors">
-                        ORD-{ (order.id || order._id).slice(-6).toUpperCase() }
-                      </h3>
-                      <Tag color={statusColors[order.status]} className="rounded-full label-caps px-3 border-none shadow-sm">
-                        {order.status}
+                    <div className="flex items-center gap-2.5 flex-wrap mb-0.5">
+                      <span className="font-bold text-slate-800 text-sm group-hover:text-amber-700 transition-colors">
+                        {order.orderNumber || `#${(order.id || order._id).slice(-6).toUpperCase()}`}
+                      </span>
+                      <Tag color={statusColors[order.status]} className="rounded-full text-[10px] font-bold border-none px-2 py-0 m-0">
+                        {statusLabels[order.status] ?? order.status}
                       </Tag>
                     </div>
-                    <div className="flex items-center gap-5 label-caps">
-                      <span className="text-slate-900">{order.customerName}</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-                      <span>{order.items?.length || 0} Line Items</span>
-                      <span className="hidden sm:inline w-1.5 h-1.5 rounded-full bg-slate-200" />
+                    <div className="flex items-center gap-3 text-[12px] text-slate-500 font-medium flex-wrap">
+                      <span className="text-slate-700 font-semibold">{order.customerName}</span>
+                      <span className="text-slate-300">·</span>
+                      <span>{order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? "s" : ""}</span>
+                      <span className="hidden sm:inline text-slate-300">·</span>
                       <span className="hidden sm:inline">{new Date(order.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-8 pr-2">
+                {/* Right: price + arrow */}
+                <div className="flex items-center gap-3 shrink-0">
                   <div className="text-right">
-                    <p className="label-caps mb-1">Total Value</p>
-                    <p className="text-2xl font-black text-slate-900 leading-none">${Number(order.totalPrice).toLocaleString()}</p>
+                    <p className="font-black text-slate-900 text-base leading-none">${Number(order.totalPrice).toLocaleString()}</p>
+                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">Total</p>
                   </div>
-                  <div className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-300 flex items-center justify-center group-hover:bg-amber-100 group-hover:text-amber-600 transition-all duration-300">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-300 flex items-center justify-center group-hover:bg-amber-50 group-hover:text-amber-500 transition-all">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="bg-white border-2 border-dashed border-slate-200 p-24 text-center rounded-[48px]">
-             <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border border-slate-100">
-                <svg className="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-             </div>
-             <h3 className="font-black text-slate-800">No Orders in Queue</h3>
-             <p className="text-slate-500 mt-2 max-w-sm mx-auto font-medium">Capture your first client requisition by initiating the dispatch protocol.</p>
-             <Button type="primary" className="bg-amber-600 hover:!bg-amber-700 h-14 px-10 rounded-2xl font-black mt-10" onClick={handleOpenCreateMode}>
-                Initialize Dispatch
-             </Button>
+          <div className="bg-white border border-dashed border-slate-200 p-14 text-center rounded-2xl">
+            <div className="w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
+              <svg className="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="text-slate-700 mb-1">No orders yet</h3>
+            <p className="text-slate-400 text-sm font-medium max-w-xs mx-auto">
+              Create your first order to start tracking customer purchases.
+            </p>
+            {(userRole === "MANAGER" || userRole === "ADMIN") && (
+              <Button
+                type="primary"
+                className="mt-6 h-10 px-6 rounded-xl font-bold bg-amber-600 hover:!bg-amber-700 border-none"
+                onClick={openCreate}
+              >
+                Create Order
+              </Button>
+            )}
           </div>
         )}
       </div>
 
-      {/* Integrated Order Modal */}
+      {/* Modal */}
       <Modal
         open={isModalOpen}
-        onCancel={handleCloseModal}
+        onCancel={closeModal}
         footer={null}
         centered
-        width={modalType === 'CREATE' ? 1080 : 820}
+        width={modalType === "CREATE" ? 980 : 740}
         styles={{ body: { padding: 0 } }}
-        className="inventory-ant-modal overflow-hidden rounded-[40px]"
+        className="inventory-ant-modal overflow-hidden"
         title={null}
       >
-        {modalType === 'CREATE' ? (
-          <div className="flex flex-col lg:flex-row h-[85vh] lg:h-[700px]">
-             {/* Product Selection Side */}
-             <div className="flex-1 p-8 lg:p-10 overflow-y-auto bg-slate-50/50 border-r border-slate-100">
-                <div className="mb-8">
-                   <h2 className="mb-0">Select Assets</h2>
-                   <p className="label-caps mt-1">Available Inventory</p>
-                </div>
+        {modalType === "CREATE" ? (
+          /* ── Create Order Modal ── */
+          <div className="flex flex-col lg:flex-row h-[80vh] lg:h-[620px]">
+
+            {/* Left: Product picker */}
+            <div className="flex-1 flex flex-col overflow-hidden bg-slate-50/60 border-r border-slate-100">
+              <div className="px-6 pt-6 pb-4 border-b border-slate-100 bg-white">
+                <h2 className="mb-0">Add Products</h2>
+                <p className="card-subtitle mt-0.5">Click a product to add it to the order.</p>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
                 {productsLoading ? (
-                   <div className="space-y-4 animate-pulse">
-                      {[1, 2, 3, 4].map(i => <div key={i} className="h-20 bg-white rounded-2xl border border-slate-100" />)}
-                   </div>
+                  <div className="space-y-3 animate-pulse">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="h-16 bg-white rounded-xl border border-slate-100" />
+                    ))}
+                  </div>
+                ) : activeProducts.length === 0 ? (
+                  <div className="py-16 text-center text-slate-400 text-sm font-medium">
+                    No products available in stock.
+                  </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-4">
-                     {activeProducts.map((p: any) => (
-                       <div 
-                         key={p.id}
-                         onClick={() => addToCart(p)}
-                         className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between hover:border-amber-400 hover:shadow-lg hover:shadow-amber-100 transition-all cursor-pointer group"
-                       >
-                          <div className="min-w-0">
-                             <p className="font-extrabold text-slate-800 group-hover:text-amber-700 truncate mb-0">{p.name}</p>
-                             <p className="label-caps mt-1">${p.price} &middot; {p.stockQuantity} in stock</p>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {activeProducts.map((p: any) => {
+                      const inCart = cart.find((c) => c.productId === p.id);
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => addToCart(p)}
+                          className={`flex items-center justify-between px-4 py-3 rounded-xl border bg-white shadow-sm cursor-pointer transition-all group ${inCart ? "border-amber-300 bg-amber-50/40" : "border-slate-200 hover:border-amber-300 hover:shadow-amber-50"}`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-slate-800 truncate text-sm mb-0 group-hover:text-amber-700 transition-colors">{p.name}</p>
+                            <p className="text-[11px] text-slate-400 font-medium mt-0.5">${p.price} · {p.stockQuantity} in stock</p>
                           </div>
-                          <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-amber-100 group-hover:text-amber-600 transition-all">
-                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
+                          <div className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all ${inCart ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-400 group-hover:bg-amber-100 group-hover:text-amber-600"}`}>
+                            {inCart ? (
+                              <span className="text-xs font-black">{inCart.quantity}</span>
+                            ) : (
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" />
+                              </svg>
+                            )}
                           </div>
-                       </div>
-                     ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
-             </div>
+              </div>
+            </div>
 
-             {/* Dispatch Summary Side */}
-             <div className="flex-1 p-8 lg:p-10 flex flex-col bg-white">
-                <div className="mb-8">
-                   <h2 className="mb-0">Manifest</h2>
-                   <p className="label-caps mt-1">Order Summary</p>
+            {/* Right: Order summary */}
+            <div className="flex-1 flex flex-col overflow-hidden bg-white">
+              <div className="px-6 pt-6 pb-4 border-b border-slate-100">
+                <h2 className="mb-0">Order Summary</h2>
+                <p className="card-subtitle mt-0.5">Review items and enter customer details.</p>
+              </div>
+
+              <div className="flex-1 flex flex-col overflow-hidden p-5 gap-3">
+                {/* Customer details */}
+                <div className="space-y-2.5">
+                  <p className="label-caps text-slate-400 mb-1">Customer Details</p>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 mb-1.5">Name <span className="text-rose-400">*</span></label>
+                    <Input
+                      placeholder="e.g. John Doe"
+                      size="middle"
+                      className="rounded-xl h-10 border-slate-200 font-medium"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 mb-1.5">Phone <span className="text-slate-300 font-normal">optional</span></label>
+                    <Input
+                      placeholder="e.g. +8801712345678"
+                      size="middle"
+                      className="rounded-xl h-10 border-slate-200 font-medium"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 mb-1.5">Address <span className="text-slate-300 font-normal">optional</span></label>
+                    <Input
+                      placeholder="e.g. Dhaka, Bangladesh"
+                      size="middle"
+                      className="rounded-xl h-10 border-slate-200 font-medium"
+                      value={customerAddress}
+                      onChange={(e) => setCustomerAddress(e.target.value)}
+                    />
+                  </div>
                 </div>
-                
-                <div className="space-y-6 flex-1 flex flex-col min-h-0">
-                   <div>
-                      <label className="label-caps mb-2 block">Customer Designation</label>
-                      <Input 
-                        placeholder="e.g. Global Tech Solutions" 
-                        size="large" 
-                        className="rounded-2xl h-14 border-2 border-slate-100 font-bold" 
-                        value={customerName}
-                        onChange={e => setCustomerName(e.target.value)}
-                      />
-                   </div>
 
-                   <div className="flex-1 bg-slate-50/80 rounded-[32px] border border-slate-100 p-6 overflow-y-auto">
-                      <div className="space-y-4">
-                         {cart.length === 0 ? (
-                            <div className="py-20 text-center opacity-30 select-none">
-                               <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                               <p className="label-caps">No lines added to manifest</p>
-                            </div>
-                         ) : (
-                           cart.map(item => (
-                             <div key={item.productId} className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                                <div className="min-w-0 flex-1 mr-4">
-                                   <p className="font-bold text-slate-800 truncate mb-0">{item.name}</p>
-                                   <p className="label-caps mt-1">${item.unitPrice} per unit</p>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                   <InputNumber 
-                                     min={0} 
-                                     max={item.maxStock} 
-                                     value={item.quantity} 
-                                     onChange={val => updateQuantity(item.productId, Number(val))}
-                                     className="w-20 rounded-lg h-9 flex items-center font-bold"
-                                   />
-                                   <p className="font-black text-slate-900 w-20 text-right">${(item.quantity * item.unitPrice).toFixed(2)}</p>
-                                </div>
-                             </div>
-                           ))
-                         )}
-                      </div>
-                   </div>
-
-                   <div className="pt-6">
-                      <div className="flex justify-between items-center mb-6 px-4">
-                         <p className="label-caps">Total Dispatch Value</p>
-                         <p className="text-3xl font-black text-slate-900 leading-none">${cartTotal.toFixed(2).toLocaleString()}</p>
-                      </div>
-                      <div className="flex gap-4">
-                         <Button onClick={handleCloseModal} className="h-14 flex-1 rounded-2xl font-black text-slate-400 border-none bg-slate-50 uppercase tracking-widest">Discard</Button>
-                         <Button 
-                           type="primary" 
-                           onClick={handleCreateOrder} 
-                           loading={isCreating}
-                           disabled={cart.length === 0 || !customerName.trim()}
-                           className="h-14 flex-[2] rounded-2xl btn-primary font-black uppercase tracking-[0.2em] shadow-xl shadow-primary-600/20"
-                         >
-                           Initialize Dispatch
-                         </Button>
-                      </div>
-                   </div>
+                {/* Cart items */}
+                <div className="flex-1 overflow-y-auto rounded-xl border border-slate-100 bg-slate-50/60">
+                  {cart.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full py-10 opacity-40 select-none text-center px-4">
+                      <svg className="w-10 h-10 mb-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      <p className="text-sm font-medium text-slate-500">No items added yet</p>
+                      <p className="text-xs text-slate-400 mt-1">Click products on the left to add them here.</p>
+                    </div>
+                  ) : (
+                    <div className="p-3 space-y-2">
+                      {cart.map((item) => (
+                        <div key={item.productId} className="flex items-center gap-3 bg-white px-3 py-2.5 rounded-lg border border-slate-100 shadow-sm">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-slate-800 text-sm truncate mb-0">{item.name}</p>
+                            <p className="text-[11px] text-slate-400 font-medium">${item.unitPrice} per unit</p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <InputNumber
+                              min={0}
+                              max={item.maxStock}
+                              value={item.quantity}
+                              onChange={(val) => updateQuantity(item.productId, Number(val))}
+                              size="small"
+                              className="w-16 rounded-lg"
+                            />
+                            <span className="font-bold text-slate-800 text-sm w-16 text-right">${(item.quantity * item.unitPrice).toFixed(2)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-             </div>
+
+                {/* Total + actions */}
+                <div className="border-t border-slate-100 pt-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-semibold text-slate-500">Order Total</span>
+                    <span className="text-xl font-black text-slate-900">${cartTotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex gap-2.5">
+                    <Button onClick={closeModal} className="h-10 flex-1 rounded-xl font-semibold text-slate-500 border-slate-200 bg-slate-50">
+                      Cancel
+                    </Button>
+                    <Button
+                      type="primary"
+                      onClick={handleCreateOrder}
+                      loading={isCreating}
+                      disabled={!customerName.trim() || cart.length === 0}
+                      className="h-10 flex-[2] rounded-xl btn-primary font-bold shadow-md shadow-primary-600/15"
+                    >
+                      Place Order
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col max-h-[90vh]">
-             {/* Details Header */}
-             <div className="bg-slate-50/50 p-8 sm:p-10 border-b border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                   <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center shadow-xl rotate-3">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                   </div>
-                   <div>
-                      <p className="label-caps text-primary-700 mb-1">Global Procurement Log</p>
-                      <h2 className="mb-0">Order #{ selectedOrderId?.slice(-6).toUpperCase() }</h2>
-                   </div>
+          /* ── Order Details Modal ── */
+          <div className="flex flex-col max-h-[88vh]">
+
+            {/* Details header */}
+            <div className="px-6 pt-6 pb-5 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-400 flex items-center justify-center shadow-md">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
-                {detailsData?.data?.order?.status === 'CANCELLED' && (
-                  <Tag color="red" className="m-0 uppercase font-black px-4 py-1 rounded-full text-xs">Transaction Aborted</Tag>
-                )}
-             </div>
+                <div>
+                  <p className="label-caps text-amber-700 mb-0.5">Order Details</p>
+                  <h2 className="mb-0">Order #{selectedOrderId?.slice(-6).toUpperCase()}</h2>
+                </div>
+              </div>
+              {detailsData?.data?.order?.status && (
+                <Tag
+                  color={statusColors[detailsData.data.order.status]}
+                  className="rounded-full font-bold px-3 py-0.5 text-xs m-0"
+                >
+                  {statusLabels[detailsData.data.order.status] ?? detailsData.data.order.status}
+                </Tag>
+              )}
+            </div>
 
-             <div className="p-10 overflow-y-auto space-y-10">
-                {detailsLoading ? (
-                   <div className="space-y-8 animate-pulse">
-                      <div className="h-40 bg-slate-100 rounded-3xl" />
-                      <div className="h-60 bg-slate-50 rounded-3xl" />
-                   </div>
-                ) : detailsData?.data && (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                       <div className="bg-slate-50 rounded-[32px] p-8 border border-slate-100">
-                          <h4 className="label-caps !text-slate-400 mb-6 flex items-center gap-2">
-                             <span className="w-2 h-2 rounded-full bg-amber-500" />
-                             Contact & Identity
-                          </h4>
-                          <Descriptions column={1} size="small" className="inventory-descriptions">
-                             <Descriptions.Item label="Target Recipient"><span className="font-extrabold text-slate-800 text-lg">{detailsData.data.order.customerName}</span></Descriptions.Item>
-                             <Descriptions.Item label="System ID"><span className="font-mono text-[10px] text-slate-400 tracking-tighter">{detailsData.data.order.id}</span></Descriptions.Item>
-                             <Descriptions.Item label="Timestamp">{new Date(detailsData.data.order.createdAt).toLocaleString()}</Descriptions.Item>
-                             <Descriptions.Item label="Process Lead"><span className="font-bold text-slate-600">{detailsData.data.manager?.name || 'System Auto'}</span></Descriptions.Item>
-                          </Descriptions>
-                       </div>
-                       <div className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-sm flex flex-col justify-center text-center">
-                          <p className="label-caps mb-2">Total Fiscal Valuation</p>
-                          <p className="text-5xl font-black text-slate-900 leading-none">${detailsData.data.order.totalPrice.toLocaleString()}</p>
-                          <Divider className="my-6" />
-                          <div className="flex justify-center gap-6">
-                             <div>
-                                <p className="label-caps !text-[9px]">Line Count</p>
-                                <p className="text-xl font-bold text-slate-800">{detailsData.data.items?.length || 0}</p>
-                             </div>
-                             <div className="w-px h-10 bg-slate-100" />
-                             <div>
-                                <p className="label-caps !text-[9px]">Unit Sum</p>
-                                <p className="text-xl font-bold text-slate-800">{detailsData.data.items?.reduce((acc: number, cur: any) => acc + cur.quantity, 0) || 0}</p>
-                             </div>
-                          </div>
-                       </div>
+            {/* Details body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-5">
+              {detailsLoading ? (
+                <div className="space-y-4 animate-pulse">
+                  <div className="h-32 bg-slate-100 rounded-2xl" />
+                  <div className="h-48 bg-slate-50 rounded-2xl" />
+                </div>
+              ) : detailsData?.data && (
+                <>
+                  {/* Summary cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Customer info */}
+                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                      <h4 className="label-caps !text-slate-400 mb-4 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                        Order Info
+                      </h4>
+                      <Descriptions column={1} size="small">
+                        <Descriptions.Item label="Customer">
+                          <span className="font-bold text-slate-800">{detailsData.data.order.customerName}</span>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Order No.">
+                          <span className="font-mono font-bold text-amber-700 text-xs">{detailsData.data.order.orderNumber}</span>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Placed on">
+                          {new Date(detailsData.data.order.createdAt).toLocaleString()}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Last updated">
+                          {new Date(detailsData.data.order.updatedAt).toLocaleString()}
+                        </Descriptions.Item>
+                        {detailsData.data.order.cancelledAt && (
+                          <Descriptions.Item label="Cancelled at">
+                            <span className="text-rose-600 font-medium">{new Date(detailsData.data.order.cancelledAt).toLocaleString()}</span>
+                          </Descriptions.Item>
+                        )}
+                        {detailsData.data.order.deliveredAt && (
+                          <Descriptions.Item label="Delivered at">
+                            <span className="text-emerald-600 font-medium">{new Date(detailsData.data.order.deliveredAt).toLocaleString()}</span>
+                          </Descriptions.Item>
+                        )}
+                        <Descriptions.Item label="Processed by">
+                          <span className="font-medium text-slate-700">{detailsData.data.manager?.name || "—"}</span>
+                          {detailsData.data.manager?.role && (
+                            <Tag className="ml-2 rounded-full text-[9px] font-bold border-none m-0 px-2 bg-slate-100 text-slate-500">{detailsData.data.manager.role}</Tag>
+                          )}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Order ID">
+                          <span className="font-mono text-[10px] text-slate-400 break-all">{detailsData.data.order.id}</span>
+                        </Descriptions.Item>
+                      </Descriptions>
                     </div>
 
-                    <div>
-                       <h4 className="label-caps !text-slate-400 mb-4 ml-2">Shipment Inventory</h4>
-                       <div className="rounded-[32px] border border-slate-200 overflow-hidden shadow-sm bg-white">
-                          <Table 
-                            dataSource={detailsData.data.items} 
-                            pagination={false} 
-                            className="inventory-table"
-                            rowKey="id"
-                            columns={[
-                              { title: 'ASSET DESIGNATION', dataIndex: ['product', 'name'], key: 'name', render: (t, r: any) => <span className="font-bold text-slate-800">{t || r.productId}</span> },
-                              { title: 'UNIT VALUE', dataIndex: 'unitPrice', key: 'price', align: 'right', render: (v) => <span className="font-medium text-slate-500">${v}</span> },
-                              { title: 'QUANTITY', dataIndex: 'quantity', key: 'qty', align: 'center', render: (v) => <Tag className="rounded-lg font-black bg-slate-100 border-none m-0 px-3">{v}</Tag> },
-                              { title: 'LINE TOTAL', dataIndex: 'lineTotal', key: 'total', align: 'right', render: (v, r: any) => <span className="font-black text-slate-900">${v || (r.quantity * r.unitPrice)}</span> }
-                            ]}
-                          />
-                       </div>
+                    {/* Price summary */}
+                    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-center text-center">
+                      <p className="label-caps mb-2 text-slate-400">Order Total</p>
+                      <p className="text-4xl font-black text-slate-900 leading-none">
+                        ${detailsData.data.order.totalPrice.toLocaleString()}
+                      </p>
+                      <Divider className="my-4" />
+                      <div className="flex justify-center gap-6">
+                        <div>
+                          <p className="label-caps text-slate-400 mb-1">Products</p>
+                          <p className="text-lg font-bold text-slate-800">{detailsData.data.items?.length || 0}</p>
+                        </div>
+                        <div className="w-px bg-slate-100" />
+                        <div>
+                          <p className="label-caps text-slate-400 mb-1">Total Units</p>
+                          <p className="text-lg font-bold text-slate-800">
+                            {detailsData.data.items?.reduce((acc: number, cur: any) => acc + cur.quantity, 0) || 0}
+                          </p>
+                        </div>
+                      </div>
                     </div>
+                  </div>
 
-                    {(userRole === "MANAGER" || userRole === "ADMIN") && detailsData.data.order.status !== 'CANCELLED' && detailsData.data.order.status !== 'DELIVERED' && (
-                      <div className="bg-amber-50 rounded-[40px] p-8 sm:p-10 border border-amber-100 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/20 rounded-full blur-3xl -mt-10 -mr-10" />
-                        <h4 className="label-caps !text-amber-800 mb-8 flex items-center gap-3">
-                           <span className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-pulse" />
-                           Lifecycle Administration
+                  {/* Items table */}
+                  <div>
+                    <h4 className="label-caps !text-slate-400 mb-3 ml-1">Items Ordered</h4>
+                    <div className="rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-sm">
+                      <Table
+                        dataSource={detailsData.data.items}
+                        pagination={false}
+                        size="small"
+                        className="inventory-table"
+                        rowKey="id"
+                        columns={[
+                          {
+                            title: "Product",
+                            key: "name",
+                            render: (_: any, r: any) => (
+                              <div className="min-w-0">
+                                <p className="font-semibold text-slate-800 mb-0 leading-tight">{r.product?.name || r.productId}</p>
+                                {r.product?.category?.name && (
+                                  <p className="text-[11px] text-slate-400 mt-0.5 mb-0">{r.product.category.name}</p>
+                                )}
+                              </div>
+                            ),
+                          },
+                          {
+                            title: "Stock Status",
+                            key: "stockStatus",
+                            align: "center" as const,
+                            render: (_: any, r: any) => {
+                              const s = r.product?.status;
+                              const colors: any = { IN_STOCK: "green", LOW_STOCK: "orange", OUT_OF_STOCK: "red" };
+                              const labels: any = { IN_STOCK: "In Stock", LOW_STOCK: "Low Stock", OUT_OF_STOCK: "Out of Stock" };
+                              return s ? <Tag color={colors[s] ?? "default"} className="rounded-full text-[10px] font-bold border-none m-0 px-2">{labels[s] ?? s}</Tag> : <span className="text-slate-300">—</span>;
+                            },
+                          },
+                          {
+                            title: "Unit Price",
+                            dataIndex: "unitPrice",
+                            key: "price",
+                            align: "right" as const,
+                            render: (v: any) => <span className="text-slate-500 font-medium">${v}</span>,
+                          },
+                          {
+                            title: "Qty",
+                            dataIndex: "quantity",
+                            key: "qty",
+                            align: "center" as const,
+                            render: (v: any) => (
+                              <Tag className="rounded-md font-bold bg-slate-100 border-none m-0 px-2">{v}</Tag>
+                            ),
+                          },
+                          {
+                            title: "Subtotal",
+                            dataIndex: "lineTotal",
+                            key: "total",
+                            align: "right" as const,
+                            render: (v: any, r: any) => (
+                              <span className="font-bold text-slate-900">${v ?? (r.quantity * r.unitPrice)}</span>
+                            ),
+                          },
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Update status (Manager/Admin only) */}
+                  {(userRole === "MANAGER" || userRole === "ADMIN") &&
+                    detailsData.data.order.status !== "CANCELLED" &&
+                    detailsData.data.order.status !== "DELIVERED" && (
+                      <div className="bg-amber-50/60 rounded-2xl p-5 border border-amber-100">
+                        <h4 className="label-caps !text-amber-700 mb-4 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                          Update Order Status
                         </h4>
-                        <div className="flex flex-col sm:flex-row gap-6 items-end">
-                           <div className="flex-1 w-full">
-                              <label className="label-caps text-amber-700 mb-2 block">Transition Protocol</label>
-                              <Select 
-                                className="w-full h-14 inventory-select" 
-                                placeholder="Select protocol transition..."
-                                defaultValue={detailsData.data.order.status}
-                                onChange={handleStatusChange}
-                                loading={isUpdatingStatus}
-                                options={[
-                                  { label: 'PENDING IDENTIFICATION', value: 'PENDING' },
-                                  { label: 'CONFIRM DISPATCH', value: 'CONFIRMED' },
-                                  { label: 'INITIATE SHIPMENT', value: 'SHIPPED' },
-                                  { label: 'FINALIZE DELIVERY', value: 'DELIVERED' },
-                                ]}
-                              />
-                           </div>
-                           <Button 
-                             danger 
-                             onClick={handleCancel}
-                             loading={isCancelling}
-                             className="h-14 px-8 rounded-2xl font-black uppercase tracking-widest border-2 border-rose-200 bg-white text-rose-600 hover:!bg-rose-50 shadow-lg shadow-rose-900/5"
-                           >
-                              Abort Transaction
-                           </Button>
+                        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
+                          <div className="flex-1">
+                            <label className="block text-xs font-bold text-amber-700 mb-1.5">New Status</label>
+                            <Select
+                              className="w-full h-10"
+                              placeholder="Select a status..."
+                              defaultValue={detailsData.data.order.status}
+                              onChange={handleStatusChange}
+                              loading={isUpdatingStatus}
+                              options={[
+                                { label: "Pending", value: "PENDING" },
+                                { label: "Confirmed", value: "CONFIRMED" },
+                                { label: "Shipped", value: "SHIPPED" },
+                                { label: "Delivered", value: "DELIVERED" },
+                              ]}
+                            />
+                          </div>
+                          <Button
+                            danger
+                            onClick={handleCancelOrder}
+                            loading={isCancelling}
+                            className="h-10 px-5 rounded-xl font-bold border-rose-200 bg-white text-rose-600 hover:!bg-rose-50"
+                          >
+                            Cancel Order
+                          </Button>
                         </div>
                       </div>
                     )}
-                    
-                    {/* Admin History Timeline */}
-                    <RoleVisibility roles={["ADMIN"]}>
-                       {detailsData.data.timeHistory?.timeline?.length > 0 && (
-                          <div className="mt-4 pt-10 border-t border-slate-100">
-                             <h4 className="label-caps !text-slate-400 mb-8 ml-2">Verification Audit Trail</h4>
-                             <div className="space-y-8 pl-4 border-l-2 border-slate-100 ml-4 relative">
-                                {detailsData.data.timeHistory.timeline.map((event: any, idx: number) => (
-                                   <div key={idx} className="relative pl-6">
-                                      <div className="absolute -left-[33px] top-1.5 w-4 h-4 rounded-full bg-white border-2 border-slate-200" />
-                                      <p className="font-extrabold text-slate-700 text-sm leading-tight">{event.message}</p>
-                                      <p className="text-[10px] font-medium text-slate-400 mt-1 uppercase tracking-wider">
-                                        {new Date(event.timestamp).toLocaleString()} &middot; Initiated By {event.actor?.name || 'System'}
-                                      </p>
-                                   </div>
-                                ))}
-                             </div>
-                          </div>
-                       )}
-                    </RoleVisibility>
-                  </>
-                )}
-             </div>
 
-             {/* Footer Actions */}
-             <div className="p-8 border-t border-slate-100 bg-white sticky bottom-0 z-10">
-                <Button onClick={handleCloseModal} block className="h-12 rounded-2xl font-black text-slate-400 border-none bg-slate-50 uppercase tracking-widest">Dismiss Log</Button>
-             </div>
+                  {/* Admin audit trail */}
+                  <RoleVisibility roles={["ADMIN"]}>
+                    {detailsData.data.timeHistory?.timeline?.length > 0 && (
+                      <div className="pt-4 border-t border-slate-100">
+                        <h4 className="label-caps !text-slate-400 mb-4 ml-1">Activity History</h4>
+                        <div className="space-y-3 pl-4 border-l-2 border-slate-100 ml-3">
+                          {detailsData.data.timeHistory.timeline.map((event: any, idx: number) => (
+                            <div key={idx} className="relative pl-5">
+                              <div className="absolute -left-[25px] top-1.5 w-3 h-3 rounded-full bg-white border-2 border-amber-300" />
+                              <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">
+                                  {event.action?.replace(/_/g, " ")}
+                                </span>
+                                {event.source && (
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
+                                    {event.source.replace(/_/g, " ")}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="font-medium text-slate-700 text-sm leading-tight mb-0.5">{event.message}</p>
+                              <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wide">
+                                {new Date(event.timestamp).toLocaleString()} · {event.actor?.name || "System"}
+                                {event.actor?.role && <span className="ml-1 text-slate-300">({event.actor.role})</span>}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </RoleVisibility>
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+              <Button onClick={closeModal} block className="h-9 rounded-xl font-semibold text-slate-500 border-slate-200 bg-white hover:!bg-slate-50">
+                Close
+              </Button>
+            </div>
           </div>
         )}
       </Modal>

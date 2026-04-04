@@ -12,9 +12,10 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Smart Inventory & Order Management",
+  title: "Stock Control System | Intelligent Inventory & Order Management",
   description:
-    "A modern, glassmorphic SaaS platform for managing products, stock, orders, and fulfillment workflows.",
+    "Stock Control System is a premium, glassmorphic SaaS platform designed for high-precision inventory tracking, automated order fulfillment, and real-time operational workflows.",
+  keywords: "stock control system, inventory management software, order fulfillment, precise inventory, SaaS inventory",
 };
 
 export default function RootLayout({
@@ -29,6 +30,24 @@ export default function RootLayout({
       className={`${outfit.variable}`}
     >
       <body suppressHydrationWarning className="font-main">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "Stock Control System",
+              "operatingSystem": "Web",
+              "applicationCategory": "BusinessApplication",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+              },
+              "description": "Stock Control System is an intelligent, real-time inventory and order management platform built for modern business operations."
+            })
+          }}
+        />
         <div className="mesh-bg"></div>
         <ReduxStoreProvider>
           <NextTopLoader color="#1B475D" showSpinner={false} />

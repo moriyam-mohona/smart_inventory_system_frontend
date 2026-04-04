@@ -128,7 +128,7 @@ export default function UsersPage() {
   const usersRaw = Array.isArray(usersData?.data) ? usersData.data : [];
   const users = useMemo(() => usersRaw.map(normalizeUser).filter((u: UserRecord) => u.id), [usersRaw]);
   const managerDetails = managerDetailsRes?.data;
-  const currentUser = users.find((u) => u.id === selectedUserId);
+  const currentUser = users.find((u: UserRecord) => u.id === selectedUserId);
 
   const managers = useMemo(
     () => users.filter((user: UserRecord) => user.role.toUpperCase() === "MANAGER"),
@@ -493,7 +493,7 @@ export default function UsersPage() {
                   className="bg-[linear-gradient(135deg,#4f46e5,#7c3aed)] font-black text-lg border-4 border-white shadow-xl"
                   size={80}
                 >
-                  {currentUser.name.split(" ").map(n => n[0]).join("")}
+                  {currentUser.name.split(" ").map((n: string) => n[0]).join("")}
                 </Avatar>
                 <div className="flex-1">
                    <h2 className="mb-0">{currentUser.name}</h2>

@@ -7,6 +7,8 @@ const orderApi = baseApi.injectEndpoints({
     createOrder: builder.mutation({
       query: (orderData: {
         customerName: string;
+        customerPhone?: string;
+        customerAddress?: string;
         items: Array<{ productId: string; quantity: number }>;
       }) => ({
         url: "/orders",

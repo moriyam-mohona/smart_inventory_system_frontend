@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, ReactNode } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAppSelector } from "@/redux/hooks";
 import { selectCurrentToken, selectCurrentUser } from "@/redux/features/auth/authSlice";
@@ -15,9 +15,16 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   const pathname = usePathname();
   const token = useAppSelector(selectCurrentToken);
   const user = useAppSelector(selectCurrentUser);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // 1. Check if user is logged in
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
+    // 1. Not authenticated → redirect to login
     if (!token || !user) {
       router.replace("/auth/login");
       return;
@@ -28,15 +35,17 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
     if (!canAccessPath(userRole, pathname)) {
       router.replace("/dashboard");
     }
-  }, [token, user, pathname, router]);
+  }, [isMounted, token, user, pathname, router]);
 
-  // If no auth data, show nothing (or a loader)
-  if (!token || !user) {
+  // Show full-screen overlay while checking auth or redirecting
+  if (!isMounted || !token || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#F3F6F8]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-600 font-medium animate-pulse">Authenticating...</p>
+          <div className="w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-600 font-semibold text-sm animate-pulse tracking-wide">
+            Authenticating...
+          </p>
         </div>
       </div>
     );
