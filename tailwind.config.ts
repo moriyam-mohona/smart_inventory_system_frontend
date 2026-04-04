@@ -69,8 +69,9 @@ export default {
         "3xl": "24px",
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
-        heading: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+        main: ["var(--font-main)", "sans-serif"],
+        sans: ["var(--font-main)", "Inter", "system-ui", "sans-serif"],
+        heading: ["var(--font-main)", '"Plus Jakarta Sans"', "sans-serif"],
       },
     },
   },

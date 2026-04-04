@@ -70,10 +70,10 @@ export default function LowStockPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+              <h1 className="mb-0">
                 Restock Queue
               </h1>
-              <p className="text-sm text-slate-500">
+              <p className="card-subtitle !text-[14px]">
                 Products that need restocking soon
               </p>
             </div>
@@ -131,16 +131,16 @@ export default function LowStockPage() {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-slate-900 text-sm truncate">
+                        <h3 className="mb-0 !text-[15px] truncate">
                           {productName}
                         </h3>
                         {currentStock === 0 && (
-                           <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700 border border-red-200/60 uppercase tracking-widest">
+                           <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 label-caps !text-red-700 border border-red-200/60 !tracking-wide">
                              Out of Stock
                            </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
+                       <div className="flex items-center gap-3 label-caps !text-slate-500 !tracking-tight">
                         <span className="inline-flex items-center gap-1">
                           <svg
                             className="w-3 h-3 text-slate-400"
@@ -167,9 +167,9 @@ export default function LowStockPage() {
 
                   {/* Right Section */}
                   <div className="flex-shrink-0 flex items-center gap-4">
-                    <div className="text-right hidden sm:block">
+                     <div className="text-right hidden sm:block">
                       <span
-                        className={`text-xs font-semibold px-2 py-1 rounded inline-block uppercase tracking-wider border ${config.bg} ${config.text} ${config.border}`}
+                        className={`label-caps px-2 py-1 rounded inline-block border !tracking-normal ${config.bg} ${config.text} ${config.border}`}
                       >
                         {priority} Priority
                       </span>
@@ -194,10 +194,10 @@ export default function LowStockPage() {
               <span className="text-3xl">✅</span>
             </div>
           </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">
+           <h3 className="mb-2">
             All products are well stocked!
           </h3>
-          <p className="text-slate-500">
+          <p className="card-subtitle">
             No items are currently below their minimum threshold.
           </p>
         </div>

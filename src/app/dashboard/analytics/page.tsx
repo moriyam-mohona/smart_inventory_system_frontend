@@ -52,8 +52,8 @@ function AdminAnalyticsView({ data }: { data: any }) {
       <div className="card-glass p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="relative z-10">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight">Admin Analytics & Reports</h2>
-          <p className="text-slate-500 font-medium mt-1">
+          <h2 className="mb-0">Admin Analytics & Reports</h2>
+          <p className="card-subtitle mt-1">
             Real-time business insights and performance metrics
           </p>
         </div>
@@ -68,10 +68,12 @@ function AdminAnalyticsView({ data }: { data: any }) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Orders Card */}
         <div className="card-glass p-6 group hover:-translate-y-1 transition-transform duration-300">
-          <h3 className="text-slate-500 font-bold text-[12px] uppercase tracking-wider mb-2">Total Orders</h3>
+          <h3 className="label-caps mb-2 !text-slate-500">Total Orders</h3>
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-extrabold text-slate-800">{summary.totalOrdersThisMonth}</span>
-            <span className="text-xs font-medium text-slate-400">This month</span>
+            <span className="text-4xl font-black text-slate-800">
+              {summary.totalOrdersThisMonth}
+            </span>
+            <span className="label-caps !text-slate-400 !tracking-normal">This month</span>
           </div>
           <div className="mt-5 h-1.5 w-full bg-slate-200/50 rounded-full overflow-hidden">
             <div className="h-full bg-primary-500 w-full rounded-full opacity-60"></div>
@@ -83,10 +85,10 @@ function AdminAnalyticsView({ data }: { data: any }) {
           <div className="absolute -top-4 -right-4 p-4 opacity-10 pointer-events-none transition-transform group-hover:scale-110">
              <div className="w-24 h-24 rounded-full bg-amber-500 blur-xl"></div>
           </div>
-          <h3 className="text-amber-600/80 font-bold text-[12px] uppercase tracking-wider mb-2 relative z-10">Pending Orders</h3>
+          <h3 className="label-caps mb-2 relative z-10 !text-amber-600/80">Pending Orders</h3>
           <div className="flex items-baseline gap-2 relative z-10">
-            <span className="text-4xl font-extrabold text-amber-600">{summary.pendingOrders}</span>
-            <span className="text-xs font-medium text-amber-500/70">Awaiting action</span>
+            <span className="text-4xl font-black text-amber-600">{summary.pendingOrders}</span>
+            <span className="label-caps !text-amber-500/70 !tracking-normal">Awaiting action</span>
           </div>
           <div className="mt-5 h-1.5 w-full bg-amber-500/10 rounded-full overflow-hidden relative z-10">
              <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full w-3/4 animate-pulse"></div>
@@ -98,10 +100,10 @@ function AdminAnalyticsView({ data }: { data: any }) {
           <div className="absolute -bottom-4 -left-4 p-4 opacity-10 pointer-events-none transition-transform group-hover:scale-110">
              <div className="w-24 h-24 rounded-full bg-emerald-500 blur-xl"></div>
           </div>
-          <h3 className="text-emerald-600/80 font-bold text-[12px] uppercase tracking-wider mb-2 relative z-10">Completed Orders</h3>
+          <h3 className="label-caps mb-2 relative z-10 !text-emerald-600/80">Completed Orders</h3>
           <div className="flex items-baseline gap-2 relative z-10">
-            <span className="text-4xl font-extrabold text-emerald-600">{summary.completedOrders}</span>
-            <span className="text-xs font-medium text-emerald-500/70">Successfully shipped</span>
+            <span className="text-4xl font-black text-emerald-600">{summary.completedOrders}</span>
+            <span className="label-caps !text-emerald-500/70 !tracking-normal">Successfully shipped</span>
           </div>
           <div className="mt-5 h-1.5 w-full bg-emerald-500/10 rounded-full overflow-hidden relative z-10">
              <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full w-full"></div>
@@ -111,10 +113,10 @@ function AdminAnalyticsView({ data }: { data: any }) {
         {/* Total Revenue Card */}
         <div className="border border-primary-600/30 rounded-[24px] shadow-glass relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 p-6 group hover:-translate-y-1 transition-transform duration-300">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none -translate-y-1/2 translate-x-1/3"></div>
-          <h3 className="text-primary-200 font-bold text-[12px] uppercase tracking-wider mb-2 relative z-10">Total Revenue</h3>
+          <h3 className="label-caps mb-2 relative z-10 !text-primary-200">Total Revenue</h3>
           <div className="flex items-baseline gap-2 relative z-10">
-            <span className="text-3xl font-extrabold text-white drop-shadow-md">${revenue?.totalRevenueThisMonth?.toFixed(0) ?? summary.totalRevenueThisMonth?.toFixed(0)}</span>
-            <span className="text-xs font-medium text-primary-200/80">
+            <span className="text-3xl font-black text-white drop-shadow-md">${revenue?.totalRevenueThisMonth?.toFixed(0) ?? summary.totalRevenueThisMonth?.toFixed(0)}</span>
+            <span className="label-caps !text-primary-200/80 !tracking-normal">
               {summary.monthOverMonthGrowth > 0 ? "+" : ""}{summary.monthOverMonthGrowth}% MoM
             </span>
           </div>
@@ -128,19 +130,19 @@ function AdminAnalyticsView({ data }: { data: any }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
         <div className="card-glass p-6 md:p-8 relative overflow-hidden group">
            <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl pointer-events-none transition-all duration-700 group-hover:bg-primary-500/10 group-hover:scale-150"></div>
-           <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-3 relative z-10">
-             <span className="w-1.5 h-6 bg-gradient-to-b from-primary-400 to-primary-600 rounded-full shadow-sm"></span>
-             Stock Lifecycle
-           </h3>
+            <h3 className="mb-6 flex items-center gap-3 relative z-10">
+              <span className="w-1.5 h-6 bg-gradient-to-b from-primary-400 to-primary-600 rounded-full shadow-sm"></span>
+              Stock Lifecycle
+            </h3>
            <div className="space-y-4 relative z-10">
               <div className="flex items-center justify-between p-4 bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 hover:bg-white/70 hover:shadow-sm transition-all duration-300">
                  <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 font-bold text-lg shadow-[inset_0_0_8px_rgba(59,130,246,0.1)]">
                        {summary.activeProducts ?? stock?.activeProducts ?? 0}
                     </div>
-                    <div>
-                      <div className="font-bold text-slate-700">Active Products</div>
-                      <div className="text-xs text-slate-500 font-medium">Out of {stock?.totalProducts ?? 0} total</div>
+                     <div>
+                       <div className="font-bold text-slate-700">Active Products</div>
+                       <p className="card-subtitle !text-[11px] mb-0">Out of {stock?.totalProducts ?? 0} total</p>
                     </div>
                  </div>
                  <div className="badge badge-info shadow-sm bg-white/50">Active</div>
@@ -150,9 +152,9 @@ function AdminAnalyticsView({ data }: { data: any }) {
                     <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-red-600 font-bold text-lg shadow-[inset_0_0_8px_rgba(239,68,68,0.1)]">
                        {stock?.lowStockWarnings ?? 0}
                     </div>
-                    <div>
-                      <div className="font-bold text-slate-700">Low Stock Warnings</div>
-                      <div className="text-xs text-slate-500 font-medium">Items near depletion</div>
+                     <div>
+                       <div className="font-bold text-slate-700">Low Stock Warnings</div>
+                       <p className="card-subtitle !text-[11px] mb-0">Items near depletion</p>
                     </div>
                  </div>
                  <div className="badge badge-error shadow-sm bg-white/50">Needs Restock</div>
@@ -174,9 +176,9 @@ function AdminAnalyticsView({ data }: { data: any }) {
                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-500 rounded-full border-2 border-white animate-ping"></span>
                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-500 rounded-full border-2 border-white"></span>
                     </div>
-                    <div>
-                      <div className="font-bold text-slate-700">Processing Orders</div>
-                      <div className="text-xs text-slate-500 font-medium">Confirmed & Shipped</div>
+                     <div>
+                       <div className="font-bold text-slate-700">Processing Orders</div>
+                       <p className="card-subtitle !text-[11px] mb-0">Confirmed & Shipped</p>
                     </div>
                  </div>
                  <div className="badge badge-warning shadow-sm bg-white/50">Processing</div>
@@ -208,9 +210,9 @@ function ManagerAnalyticsView({ data }: { data: any }) {
   return (
     <div className="space-y-6 w-full fade-in">
       <div className="card-glass p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight">Manager Daily Reports</h2>
-          <p className="text-slate-500 font-medium mt-1">
+         <div>
+          <h2 className="mb-0">Manager Daily Reports</h2>
+          <p className="card-subtitle mt-1">
             Today's operational metrics and insights
           </p>
         </div>
@@ -220,21 +222,21 @@ function ManagerAnalyticsView({ data }: { data: any }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card-glass p-6 group hover:-translate-y-1 transition-transform">
-          <h3 className="text-slate-500 font-bold text-[12px] uppercase tracking-wider mb-2">Orders Today</h3>
-          <div className="text-4xl font-extrabold text-slate-800">{summary.totalOrdersToday}</div>
+         <div className="card-glass p-6 group hover:-translate-y-1 transition-transform">
+          <h3 className="label-caps mb-2 !text-slate-500">Orders Today</h3>
+          <div className="text-4xl font-black text-slate-800 leading-none">{summary.totalOrdersToday}</div>
         </div>
-        <div className="card-glass p-6 group hover:-translate-y-1 transition-transform">
-          <h3 className="text-amber-600/80 font-bold text-[12px] uppercase tracking-wider mb-2">Pending (For Manager)</h3>
-          <div className="text-4xl font-extrabold text-amber-600">{summary.pendingOrdersForManager}</div>
+         <div className="card-glass p-6 group hover:-translate-y-1 transition-transform">
+          <h3 className="label-caps mb-2 !text-amber-600/80">Pending (For Manager)</h3>
+          <div className="text-4xl font-black text-amber-600 leading-none">{summary.pendingOrdersForManager}</div>
         </div>
-        <div className="card-glass p-6 group hover:-translate-y-1 transition-transform">
-          <h3 className="text-emerald-600/80 font-bold text-[12px] uppercase tracking-wider mb-2">Completed Today</h3>
-          <div className="text-4xl font-extrabold text-emerald-600">{summary.completedOrdersToday}</div>
+         <div className="card-glass p-6 group hover:-translate-y-1 transition-transform">
+          <h3 className="label-caps mb-2 !text-emerald-600/80">Completed Today</h3>
+          <div className="text-4xl font-black text-emerald-600 leading-none">{summary.completedOrdersToday}</div>
         </div>
-        <div className="border border-primary-600/30 rounded-[24px] shadow-glass bg-gradient-to-br from-primary-900 to-primary-800 p-6 group hover:-translate-y-1 transition-transform">
-          <h3 className="text-primary-200 font-bold text-[12px] uppercase tracking-wider mb-2">Revenue Today</h3>
-          <div className="text-4xl font-extrabold text-white">${summary.revenueToday?.toFixed(0)}</div>
+         <div className="border border-primary-600/30 rounded-[24px] shadow-glass bg-gradient-to-br from-primary-900 to-primary-800 p-6 group hover:-translate-y-1 transition-transform">
+          <h3 className="label-caps mb-2 !text-primary-200">Revenue Today</h3>
+          <div className="text-4xl font-black text-white leading-none">${summary.revenueToday?.toFixed(0)}</div>
         </div>
       </div>
 

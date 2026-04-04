@@ -79,7 +79,7 @@ export default function DashboardHomePage() {
             className="card-glass p-6 group hover:-translate-y-1 hover:shadow-lg transition-transform duration-300 flex flex-col justify-between"
           >
             <div className="flex items-start justify-between mb-4">
-              <h3 className="text-slate-500 font-bold text-[12px] uppercase tracking-wider">
+              <h3 className="label-caps mb-0">
                 {metric.label}
               </h3>
               <div
@@ -90,11 +90,11 @@ export default function DashboardHomePage() {
             </div>
             <div>
               <div
-                className={`text-4xl font-extrabold leading-none ${metric.textColor} mb-2`}
+                className={`text-4xl font-black leading-none ${metric.textColor} mb-2`}
               >
                 {metric.value ?? 0}
               </div>
-              <p className="text-slate-500 text-xs font-medium">{metric.description}</p>
+              <p className="card-subtitle !text-[11px] mb-0">{metric.description}</p>
             </div>
           </div>
         ))}
@@ -105,122 +105,75 @@ export default function DashboardHomePage() {
         <div className="absolute -right-12 -top-12 w-48 h-48 bg-primary-500/10 rounded-full blur-3xl pointer-events-none transition-transform group-hover:scale-125 duration-700"></div>
         <div className="flex flex-wrap items-center justify-between gap-6 relative z-10">
           <div>
-            <h2 className="text-lg font-bold text-slate-800 mb-1">
+            <h3 className="mb-1">
               {role === "ADMIN" ? "Revenue Over Period" : "Revenue Today"}
-            </h2>
-            <p className="text-5xl font-extrabold text-primary-600 drop-shadow-sm">
+            </h3>
+            <p className="text-5xl font-black text-primary-600 drop-shadow-sm mb-0 leading-none">
               ${(role === "ADMIN" ? summary.totalRevenueThisMonth : summary.revenueToday)?.toFixed(2) ?? '0.00'}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              className="btn-secondary"
+              className="btn-secondary h-11 px-6 rounded-xl font-bold flex items-center"
               href="/dashboard/products"
             >
               <span className="mr-2">📦</span>
               Inventory
             </Link>
             <Link
-              className="btn-secondary"
+              className="btn-secondary h-11 px-6 rounded-xl font-bold flex items-center"
               href="/dashboard/orders"
             >
               <span className="mr-2">📋</span>
               Orders
             </Link>
             <Link
-              className="btn-primary"
-              href="/dashboard/orders/new"
+              className="btn-primary h-11 px-6 rounded-xl font-bold flex items-center"
+              href="/dashboard/analytics"
             >
-              <span className="mr-2">🆕</span>
-              Create Order
+              <span className="mr-2">📈</span>
+              Insights
             </Link>
           </div>
         </div>
       </div>
 
       {/* Quick Access Section */}
-      <section className="card-glass p-6 md:p-8 mb-8">
-        <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+       <section className="card-glass p-6 md:p-8 mb-8">
+        <h3 className="mb-6 flex items-center gap-2">
           <span className="w-1.5 h-6 bg-gradient-to-b from-primary-400 to-primary-600 rounded-full shadow-sm"></span>
           Quick Access
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-          <Link
-            href="/dashboard/categories"
-            className="flex flex-col items-center justify-center p-4 bg-white/30 backdrop-blur-sm border border-white/50 rounded-2xl hover:bg-white/60 hover:shadow-sm transition-all duration-300 group"
-          >
-            <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
-              📂
-            </span>
-            <span className="text-sm font-bold text-slate-700 group-hover:text-primary-600 transition-colors">
-              Categories
-            </span>
-          </Link>
-          <Link
-            href="/dashboard/products"
-            className="flex flex-col items-center justify-center p-4 bg-white/30 backdrop-blur-sm border border-white/50 rounded-2xl hover:bg-white/60 hover:shadow-sm transition-all duration-300 group"
-          >
-            <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
-              📦
-            </span>
-            <span className="text-sm font-bold text-slate-700 group-hover:text-primary-600 transition-colors">
-              Products
-            </span>
-          </Link>
-          <Link
-            href="/dashboard/products/new"
-            className="flex flex-col items-center justify-center p-4 bg-white/30 backdrop-blur-sm border border-white/50 rounded-2xl hover:bg-white/60 hover:shadow-sm transition-all duration-300 group"
-          >
-            <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
-              ➕
-            </span>
-            <span className="text-sm font-bold text-slate-700 group-hover:text-primary-600 transition-colors">
-              Add Product
-            </span>
-          </Link>
-          <Link
-            href="/dashboard/orders"
-            className="flex flex-col items-center justify-center p-4 bg-white/30 backdrop-blur-sm border border-white/50 rounded-2xl hover:bg-white/60 hover:shadow-sm transition-all duration-300 group"
-          >
-            <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
-              📋
-            </span>
-            <span className="text-sm font-bold text-slate-700 group-hover:text-primary-600 transition-colors">
-              Orders
-            </span>
-          </Link>
-          <Link
-            href="/dashboard/orders/new"
-            className="flex flex-col items-center justify-center p-4 bg-white/30 backdrop-blur-sm border border-white/50 rounded-2xl hover:bg-white/60 hover:shadow-sm transition-all duration-300 group"
-          >
-            <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
-              🆕
-            </span>
-            <span className="text-sm font-bold text-slate-700 group-hover:text-primary-600 transition-colors">
-              New Order
-            </span>
-          </Link>
-          <Link
-            href="/dashboard/analytics"
-            className="flex flex-col items-center justify-center p-4 bg-white/30 backdrop-blur-sm border border-white/50 rounded-2xl hover:bg-white/60 hover:shadow-sm transition-all duration-300 group"
-          >
-            <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
-              📈
-            </span>
-            <span className="text-sm font-bold text-slate-700 group-hover:text-primary-600 transition-colors">
-              Analytics
-            </span>
-          </Link>
+        </h3>
+         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 gap-4">
+          {[
+            { label: "Categories", path: "/dashboard/categories", icon: "📂" },
+            { label: "Products", path: "/dashboard/products", icon: "📦" },
+            { label: "Orders", path: "/dashboard/orders", icon: "📋" },
+            { label: "Analytics", path: "/dashboard/analytics", icon: "📈" },
+          ].map(it => (
+            <Link
+              key={it.path}
+              href={it.path}
+              className="flex flex-col items-center justify-center p-6 bg-white/30 backdrop-blur-sm border border-white/50 rounded-2xl hover:bg-white/60 hover:shadow-md transition-all duration-300 group"
+            >
+              <span className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
+                {it.icon}
+              </span>
+              <span className="label-caps !text-slate-700 group-hover:!text-primary-600 transition-colors">
+                {it.label}
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
       
       {/* Dynamic List Section Based on Role */}
       {role === "MANAGER" && data?.lowStockItems && data.lowStockItems.length > 0 && (
         <section className="card-glass p-6 md:p-8">
-          <h2 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+           <h3 className="mb-2 flex items-center gap-2">
             <span className="w-1.5 h-6 bg-gradient-to-b from-red-400 to-red-600 rounded-full shadow-sm"></span>
-            Low Stock Alerts
-          </h2>
+            Stock Criticality Alerts
+          </h3>
           <div className="space-y-3 mt-4">
              {data.lowStockItems.map((item: any) => (
                 <div key={item.productId} className="flex items-center justify-between p-4 bg-red-500/5 backdrop-blur-md rounded-2xl border border-red-500/10 hover:bg-red-500/10 transition-colors">

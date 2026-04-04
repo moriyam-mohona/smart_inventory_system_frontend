@@ -58,7 +58,6 @@ export default function LoginPage() {
       const result = await loginWithEmail({ email, password });
       setMessage(result.message);
 
-      console.log(result.ok, result.session, result.accessToken);
       if (result.ok && result.session && result.accessToken) {
         console.log(result);
 

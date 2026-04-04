@@ -8,7 +8,27 @@
   }
 
   body {
-    @apply min-h-full flex flex-col bg-[#F3F6F8] text-slate-800 font-sans antialiased text-[15px];
+    @apply min-h-full flex flex-row bg-[#F3F6F8] text-slate-800 font-main antialiased text-base leading-relaxed;
+  }
+
+  h1, .h1 {
+    @apply text-xl sm:text-2xl font-extrabold tracking-tight leading-tight text-slate-900 mb-2;
+  }
+
+  h2, .h2 {
+    @apply text-lg sm:text-xl font-bold tracking-tight leading-snug text-slate-900 mb-2;
+  }
+
+  h3, .h3 {
+    @apply text-base sm:text-lg font-semibold tracking-tight leading-snug text-slate-800 mb-1.5;
+  }
+
+  h4, .h4 {
+    @apply text-sm font-bold leading-normal text-slate-800 mb-1;
+  }
+
+  p {
+    @apply mb-4 leading-relaxed;
   }
 
   /* Make main flex to take available space */
@@ -35,8 +55,14 @@
   input[type="date"],
   input[type="time"],
   textarea,
-  select {
-    @apply transition-all duration-300 bg-white/70 backdrop-blur-md border-white/40 text-slate-900 placeholder:text-slate-400 font-medium shadow-sm;
+  select,
+  .ant-input,
+  .ant-input-number,
+  .ant-input-password,
+  .ant-input-affix-wrapper,
+  .ant-select-selector,
+  .ant-picker {
+    @apply transition-all duration-300 bg-white/70 backdrop-blur-md border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium shadow-sm !important;
   }
 
   input[type="text"]:focus,
@@ -46,8 +72,13 @@
   input[type="date"]:focus,
   input[type="time"]:focus,
   textarea:focus,
-  select:focus {
-    @apply border-primary-500/50 bg-white ring-4 ring-primary-500/10 outline-none;
+  select:focus,
+  .ant-input:focus,
+  .ant-input-focused,
+  .ant-input-number-focused,
+  .ant-select-focused .ant-select-selector,
+  .ant-picker-focused {
+    @apply border-primary-500/50 bg-white ring-4 ring-primary-500/10 outline-none shadow-md !important;
   }
 
   /* Scrollbar styling */
@@ -113,13 +144,26 @@
   .badge-info {
     @apply bg-primary-500/10 text-primary-800 border border-primary-500/20;
   }
+
+  /* Shared Typography Utilities */
+  .label-caps {
+    @apply text-[10px] font-black uppercase tracking-[0.2em] text-slate-400;
+  }
+
+  .card-subtitle {
+    @apply text-sm font-medium text-slate-500 leading-relaxed;
+  }
+
+
+  .text-sm-bold {
+    @apply text-sm font-bold tracking-tight text-slate-800;
+  }
 }
 
 .inventory-ant-modal .ant-modal-content {
-  border-radius: 1.5rem;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-  overflow: hidden;
+  @apply rounded-[32px] bg-white/85 backdrop-blur-3xl border border-white/60 shadow-2xl overflow-hidden font-main !important;
+}
+
+.ant-form-item-label > label {
+  @apply label-caps !important;
 }

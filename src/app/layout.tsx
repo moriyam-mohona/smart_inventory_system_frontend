@@ -1,18 +1,14 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Outfit } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import "antd/dist/reset.css";
 import "./globals.css";
 import ReduxStoreProvider from "@/redux/ReduxStoreProvider";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-heading",
+const outfit = Outfit({
+  variable: "--font-main",
   subsets: ["latin"],
-});
-
-const inter = Inter({
-  variable: "--font-body",
-  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -30,9 +26,9 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${plusJakartaSans.variable} ${inter.variable}`}
+      className={`${outfit.variable}`}
     >
-      <body suppressHydrationWarning>
+      <body suppressHydrationWarning className="font-main">
         <div className="mesh-bg"></div>
         <ReduxStoreProvider>
           <NextTopLoader color="#1B475D" showSpinner={false} />
