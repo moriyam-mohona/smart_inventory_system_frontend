@@ -47,7 +47,7 @@ export default function OrdersPage() {
               </p>
             </div>
           </div>
-          <RoleVisibility roles={["MANAGER"]}>
+          <RoleVisibility roles={["MANAGER", "ADMIN"]}>
             <Link
               href="/dashboard/orders/new"
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-amber-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-amber-600/50 focus:ring-offset-2 active:scale-95"
@@ -242,7 +242,7 @@ export default function OrdersPage() {
           <p className="text-slate-500 mb-6">
             Start managing orders by creating your first order.
           </p>
-          <RoleVisibility roles={["MANAGER"]}>
+          <RoleVisibility roles={["MANAGER", "ADMIN"]}>
             <Link
               href="/dashboard/orders/new"
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-amber-600/30 transition-all"

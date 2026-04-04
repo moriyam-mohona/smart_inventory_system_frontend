@@ -81,8 +81,7 @@ export default function ProductDetailPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (userRole === "ADMIN") return; // Admins use restrict instead of operational updates
-    
+    // Allow both ADMIN and MANAGER to submit updates
     setError("");
 
     if (!formData.name.trim()) return setError("Product name is required");
@@ -154,7 +153,7 @@ export default function ProductDetailPage() {
             <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" />
           </svg>
           <span className="text-slate-600">
-            {userRole === "ADMIN" ? "Product Details" : "Edit Product"}
+            Edit Product
           </span>
         </div>
 
@@ -169,7 +168,7 @@ export default function ProductDetailPage() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-                  {userRole === "ADMIN" ? "Product Details" : "Edit Product"}
+                  Edit Product
                 </h1>
                 {productData?.isActive === false && (
                   <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 border border-red-200/60 uppercase tracking-widest mt-1">
@@ -178,7 +177,7 @@ export default function ProductDetailPage() {
                 )}
               </div>
               <p className="text-sm text-slate-500 mt-1">
-                {userRole === "ADMIN" ? "View product system statistics and configuration." : "Update this product's inventory settings."}
+                Update this product&apos;s inventory settings.
               </p>
             </div>
           </div>
@@ -197,8 +196,7 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {userRole !== "ADMIN" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-semibold text-slate-900 mb-2">
                       Product Name <span className="text-red-500">*</span>
@@ -276,7 +274,6 @@ export default function ProductDetailPage() {
                     />
                   </div>
                 </div>
-              )}
 
               {/* Immutable Admin detail view */}
               <div className="mb-8 p-4 bg-slate-50 border border-slate-200 rounded-lg">
@@ -300,18 +297,14 @@ export default function ProductDetailPage() {
                     <p className="text-xs text-slate-500 mb-1">Status</p>
                     <p className="text-sm text-slate-700 font-medium">{productData?.status || "-"}</p>
                   </div>
-                  {userRole === "ADMIN" && (
-                    <>
-                      <div>
-                        <p className="text-xs text-slate-500 mb-1">Price</p>
-                        <p className="text-sm text-slate-700 font-medium">${Number(productData?.price || 0).toFixed(2)}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 mb-1">Stock / Threshold</p>
-                        <p className="text-sm text-slate-700 font-medium">{productData?.stockQuantity || 0} / {productData?.minStockThreshold || 0}</p>
-                      </div>
-                    </>
-                  )}
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Price</p>
+                    <p className="text-sm text-slate-700 font-medium">${Number(productData?.price || 0).toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Stock / Threshold</p>
+                    <p className="text-sm text-slate-700 font-medium">{productData?.stockQuantity || 0} / {productData?.minStockThreshold || 0}</p>
+                  </div>
                   {productData?.createdAt && (
                     <div>
                       <p className="text-xs text-slate-500 mb-1">Created At</p>
@@ -345,18 +338,16 @@ export default function ProductDetailPage() {
                     href="/dashboard/products"
                     className="w-full sm:w-auto px-6 py-2.5 text-center border border-slate-200 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300/50"
                   >
-                    {userRole === "ADMIN" ? "Close" : "Cancel"}
+                    Cancel
                   </Link>
 
-                  {userRole === "MANAGER" && (
-                    <button
-                      type="submit"
-                      disabled={isLoading || loadingData || productData?.isActive === false}
-                      className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-purple-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 active:scale-95"
-                    >
-                      {isLoading ? "Saving..." : "Save Changes"}
-                    </button>
-                  )}
+                  <button
+                    type="submit"
+                    disabled={isLoading || loadingData || productData?.isActive === false}
+                    className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-purple-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 active:scale-95"
+                  >
+                    {isLoading ? "Saving..." : "Save Changes"}
+                  </button>
                 </div>
               </div>
 

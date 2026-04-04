@@ -39,54 +39,37 @@ export default function ProductsPage() {
             </div>
           </div>
           <div className="flex gap-3 flex-col xs:flex-row">
-            {userRole === "ADMIN" && (
+            <Link
+              href="/dashboard/categories"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 bg-white text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300/50"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M7 3a1 1 0 000 2h6a1 1 0 000-2H7zM4 7a1 1 0 011-1h10a1 1 0 011 1v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" />
+              </svg>
+              Categories
+            </Link>
+            {(userRole === "MANAGER" || userRole === "ADMIN") && (
               <Link
-                href="/dashboard/categories"
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 bg-white text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300/50"
+                href="/dashboard/products/new"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-purple-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:ring-offset-2 active:scale-95"
               >
                 <svg
                   className="w-4 h-4"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
-                  <path d="M7 3a1 1 0 000 2h6a1 1 0 000-2H7zM4 7a1 1 0 011-1h10a1 1 0 011 1v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
                 </svg>
-                Categories
+                Add Product
               </Link>
-            )}
-            {userRole === "MANAGER" && (
-              <>
-                <Link
-                  href="/dashboard/categories"
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 bg-white text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300/50"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M7 3a1 1 0 000 2h6a1 1 0 000-2H7zM4 7a1 1 0 011-1h10a1 1 0 011 1v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" />
-                  </svg>
-                  Category Tools
-                </Link>
-                <Link
-                  href="/dashboard/products/new"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-purple-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:ring-offset-2 active:scale-95"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Add Product
-                </Link>
-              </>
             )}
           </div>
         </div>
@@ -246,9 +229,9 @@ export default function ProductsPage() {
             No products yet
           </h3>
           <p className="text-slate-500 mb-6">
-            {userRole === "MANAGER" ? "Start building your inventory by adding your first product." : "There are currently no products in the system."}
+            {(userRole === "MANAGER" || userRole === "ADMIN") ? "Start building your inventory by adding your first product." : "There are currently no products in the system."}
           </p>
-          {userRole === "MANAGER" && (
+          {(userRole === "MANAGER" || userRole === "ADMIN") && (
             <Link
               href="/dashboard/products/new"
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-purple-600/30 transition-all"

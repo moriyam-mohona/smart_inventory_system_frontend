@@ -18,12 +18,15 @@ export default function NewCategoryPage() {
   const [createCategory, { isLoading }] = useCreateCategoryMutation();
 
   const userRole = useAppSelector((state) => state.auth.user?.role);
+  // Administrators and Managers can both create categories now.
+  /*
   useEffect(() => {
     if (userRole === "ADMIN") {
       messageApi.error("Administrators cannot create categories.");
       router.replace("/dashboard/categories");
     }
   }, [userRole, router, messageApi]);
+  */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

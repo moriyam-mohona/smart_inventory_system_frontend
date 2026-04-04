@@ -38,12 +38,15 @@ export default function NewProductPage() {
   const [error, setError] = useState("");
   const [messageApi, contextHolder] = message.useMessage();
 
+  // Both ADMIN and MANAGER can create products now.
+  /*
   useEffect(() => {
     if (userRole === "ADMIN") {
       messageApi.error("Administrators cannot add new products manually.");
       router.replace("/dashboard/products");
     }
   }, [userRole, router, messageApi]);
+  */
 
   const [createProduct] = useCreateProductMutation();
 

@@ -16,15 +16,14 @@ import {
   message,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useCallback, useEffect, useMemo, useState } from "react";
-
-import { useAppSelector } from "@/redux/hooks";
+import { useMemo, useState } from "react";
 import {
   useGetAllUsersQuery,
   useRestrictUserMutation,
   useDeleteUserMutation,
   useCreateManagerMutation,
   useGetManagerDetailsQuery,
+  useApproveUserMutation,
 } from "@/redux/features/auth/authApi";
 
 type UserRecord = {
@@ -34,6 +33,7 @@ type UserRecord = {
   role: string;
   createdAt: string;
   isApproved: boolean;
+  isActive: boolean;
   status: "ACTIVE" | "PENDING" | "RESTRICTED";
 };
 
@@ -52,7 +52,8 @@ function statusColor(status: UserRecord["status"]) {
 function normalizeUser(user: any): UserRecord {
   const id = user.id || user._id || "";
 
-  const isRestricted = user.isActive === false || user.status === "RESTRICTED";
+  const isActive = user.isActive !== false;
+  const isRestricted = !isActive || user.status === "RESTRICTED";
   const isPending = user.isApproved === false || user.status === "PENDING";
 
   return {
@@ -62,6 +63,7 @@ function normalizeUser(user: any): UserRecord {
     role: user.role || "USER",
     createdAt: user.createdAt || new Date().toISOString(),
     isApproved: user.isApproved !== false,
+    isActive,
     status: isRestricted ? "RESTRICTED" : isPending ? "PENDING" : "ACTIVE",
   };
 }
@@ -85,6 +87,7 @@ export default function UsersPage() {
   
   const [restrictUser] = useRestrictUserMutation();
   const [deleteUser] = useDeleteUserMutation();
+  const [approveUser] = useApproveUserMutation();
   const [createManager, { isLoading: creating }] = useCreateManagerMutation();
 
   const usersRaw = Array.isArray(usersData?.data) ? usersData.data : [];
@@ -115,6 +118,15 @@ export default function UsersPage() {
       messageApi.success("Manager access updated.");
     } catch (error: any) {
       messageApi.error(error?.data?.message || "Failed to update manager access.");
+    }
+  };
+
+  const handleApprove = async (user: UserRecord) => {
+    try {
+      await approveUser(user.id).unwrap();
+      messageApi.success("Manager account approved.");
+    } catch (error: any) {
+      messageApi.error(error?.data?.message || "Failed to approve manager.");
     }
   };
 
@@ -249,17 +261,38 @@ export default function UsersPage() {
           >
             View Details
           </Button>
+          {(user.isApproved === false || user.status === "PENDING") && (
+            <Popconfirm
+              title="Approve this manager?"
+              description="This will allow the manager to log in and use the system."
+              okText="Approve"
+              cancelText="Cancel"
+              onConfirm={() => {
+                void handleApprove(user);
+              }}
+            >
+              <Button className="border border-emerald-200 text-emerald-600 hover:!border-emerald-500 hover:!text-emerald-600">
+                Approve
+              </Button>
+            </Popconfirm>
+          )}
           <Popconfirm
-            title="Change manager access?"
-            description="This will toggle active/restricted state for this manager."
+            title={user.status === "RESTRICTED" ? "Activate manager access?" : "Restrict manager access?"}
+            description={user.status === "RESTRICTED" 
+              ? "This will restore access for this manager." 
+              : "This will restrict access for this manager."
+            }
             okText="Confirm"
             cancelText="Cancel"
             onConfirm={() => {
               void handleRestrict(user);
             }}
           >
-            <Button className="border border-amber-200 text-amber-700 hover:!border-amber-400 hover:!text-amber-700">
-              Restrict / Ban
+            <Button className={user.status === "RESTRICTED"
+              ? "border border-emerald-200 text-emerald-600 hover:!border-emerald-500 hover:!text-emerald-600"
+              : "border border-amber-200 text-amber-700 hover:!border-amber-400 hover:!text-amber-700"
+            }>
+              {user.status === "RESTRICTED" ? "Activate" : "Restrict"}
             </Button>
           </Popconfirm>
           <Popconfirm
@@ -523,17 +556,19 @@ export default function UsersPage() {
             </div>
 
             <div className="flex flex-wrap justify-end gap-3">
-              <button
-                type="button"
-                className="btn-secondary h-10 px-4"
-                onClick={() => {
-                  const user = users.find((u: UserRecord) => u.id === selectedUserId);
-                  if (user) void handleRestrict(user);
-                  setDetailsOpen(false);
-                }}
-              >
-                Toggle Access
-              </button>
+              {users.find((u: UserRecord) => u.id === selectedUserId)?.status === "PENDING" && (
+                <button
+                  type="button"
+                  className="btn-primary h-10 px-4 flex items-center justify-center"
+                  onClick={() => {
+                    const user = users.find((u: UserRecord) => u.id === selectedUserId);
+                    if (user) void handleApprove(user);
+                    setDetailsOpen(false);
+                  }}
+                >
+                  Approve Manager
+                </button>
+              )}
               <button
                 type="button"
                 className="btn-danger h-10 px-4"
@@ -547,7 +582,7 @@ export default function UsersPage() {
               </button>
               <Button
                 type="primary"
-                className="btn-primary"
+                className="btn-primary h-10 flex items-center justify-center px-4"
                 onClick={() => setDetailsOpen(false)}
               >
                 Close

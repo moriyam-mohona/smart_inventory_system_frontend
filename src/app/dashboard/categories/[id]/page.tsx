@@ -56,8 +56,6 @@ export default function CategoryDetailPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (userRole === "ADMIN") return;
-    
     setError("");
     setSuccessMessage("");
 
@@ -141,7 +139,7 @@ export default function CategoryDetailPage() {
               clipRule="evenodd"
             />
           </svg>
-          <span className="text-slate-600">{userRole === "ADMIN" ? "Category Details" : "Edit Category"}</span>
+          <span className="text-slate-600">Edit Category</span>
         </div>
 
         <div className="mb-8">
@@ -158,7 +156,7 @@ export default function CategoryDetailPage() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-                  {userRole === "ADMIN" ? "Category Details" : "Edit Category"}
+                  Edit Category
                 </h1>
                 {!isActive && (
                   <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 border border-red-200/60 uppercase tracking-widest mt-1">
@@ -167,7 +165,7 @@ export default function CategoryDetailPage() {
                 )}
               </div>
               <p className="text-sm text-slate-500 mt-1">
-                {userRole === "ADMIN" ? "View category statistics and manage restrictions." : "Update category details or manage status"}
+                Update category details or manage status
               </p>
             </div>
           </div>
@@ -212,8 +210,7 @@ export default function CategoryDetailPage() {
                 </div>
               )}
 
-              {userRole !== "ADMIN" && (
-                <div className="mb-8">
+              <div className="mb-8">
                   <label
                     htmlFor="categoryName"
                     className="block text-sm font-semibold text-slate-900 mb-3"
@@ -234,7 +231,6 @@ export default function CategoryDetailPage() {
                     {categoryName.length}/100 characters
                   </p>
                 </div>
-              )}
 
               <div className="mb-8 p-4 bg-slate-50 border border-slate-200 rounded-lg">
                 <h4 className="font-semibold text-slate-900 text-sm mb-4">
@@ -299,49 +295,36 @@ export default function CategoryDetailPage() {
                     {isActive ? "Ban Category" : "Already Banned"}
                   </button>
                 )}
-                {userRole !== "ADMIN" && (
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    disabled={isLoading || loadingCategory}
-                    className="w-full sm:w-auto px-6 py-2.5 border border-red-200 text-red-700 rounded-lg font-semibold text-sm hover:bg-red-50 hover:border-red-300 transition-all focus:outline-none focus:ring-2 focus:ring-red-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Delete Category
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isLoading || loadingCategory}
+                  className="w-full sm:w-auto px-6 py-2.5 border border-red-200 text-red-700 rounded-lg font-semibold text-sm hover:bg-red-50 hover:border-red-300 transition-all focus:outline-none focus:ring-2 focus:ring-red-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Delete Category
+                </button>
                 
-                {userRole !== "ADMIN" ? (
-                  <div className="flex items-center gap-3 w-full sm:w-auto ml-auto">
-                    <Link
-                      href="/dashboard/categories"
-                      className="flex-1 sm:flex-none px-6 py-2.5 border border-slate-200 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300/50 text-center"
-                    >
-                      Cancel
-                    </Link>
-                    <button
-                      type="submit"
-                      disabled={
-                        isLoading ||
-                        loadingCategory ||
-                        !categoryName.trim() ||
-                        categoryName.trim() === initialCategoryName ||
-                        !isActive
-                      }
-                      className="flex-1 sm:flex-none px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 active:scale-95"
-                    >
-                      {isLoading ? "Saving..." : "Save Changes"}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 w-full sm:w-auto ml-auto">
-                    <Link
-                      href="/dashboard/categories"
-                      className="flex-1 sm:flex-none px-6 py-2.5 border border-slate-200 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300/50 text-center"
-                    >
-                      Back to Categories
-                    </Link>
-                  </div>
-                )}
+                <div className="flex items-center gap-3 w-full sm:w-auto ml-auto">
+                  <Link
+                    href="/dashboard/categories"
+                    className="flex-1 sm:flex-none px-6 py-2.5 border border-slate-200 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-slate-300/50 text-center"
+                  >
+                    Cancel
+                  </Link>
+                  <button
+                    type="submit"
+                    disabled={
+                      isLoading ||
+                      loadingCategory ||
+                      !categoryName.trim() ||
+                      categoryName.trim() === initialCategoryName ||
+                      !isActive
+                    }
+                    className="flex-1 sm:flex-none px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 active:scale-95"
+                  >
+                    {isLoading ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

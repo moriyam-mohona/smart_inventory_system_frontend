@@ -83,7 +83,7 @@ export default function CategoriesPage() {
               </div>
             </div>
           </div>
-          {userRole === "MANAGER" && (
+          {(userRole === "MANAGER" || userRole === "ADMIN") && (
             <Link href="/dashboard/categories/new" className="btn-primary">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -208,7 +208,7 @@ export default function CategoriesPage() {
                       Ban
                     </button>
                   )}
-                  {userRole === "MANAGER" && (
+                  {(userRole === "MANAGER" || userRole === "ADMIN") && (
                     <button
                       onClick={() => handleDelete(cat.id, cat.name)}
                       className="px-3 py-1.5 text-xs font-semibold text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
@@ -251,7 +251,7 @@ export default function CategoriesPage() {
           <p className="text-slate-500 mb-6">
             Get started by creating your first product category to organize your inventory.
           </p>
-          {userRole === "MANAGER" && (
+          {(userRole === "MANAGER" || userRole === "ADMIN") && (
             <Link href="/dashboard/categories/new" className="btn-primary">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path

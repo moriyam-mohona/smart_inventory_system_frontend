@@ -35,9 +35,7 @@ const adminOnlyPrefixes = [
   "/dashboard/analytics",
 ];
 
-const managerOnlyPrefixes = [
-  "/dashboard/orders/new",
-];
+const managerOnlyPrefixes: string[] = [];
 
 export function normalizeRole(role?: UserRole | null): AppRole {
   return role === "ADMIN" ? "ADMIN" : "MANAGER";
